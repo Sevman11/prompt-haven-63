@@ -1,12 +1,17 @@
 import { NavLink, useLocation } from "react-router-dom";
 import { 
-  LayoutGrid, 
+  Home,
   MessageSquare, 
+  Image,
+  Video,
+  FileText,
   Bot, 
-  Bookmark, 
-  Clock,
+  Layers,
+  GraduationCap,
+  CreditCard,
+  User,
+  HelpCircle,
   ChevronLeft,
-  Settings,
 } from "lucide-react";
 import { cn } from "@/lib/utils";
 import { Button } from "@/components/ui/button";
@@ -17,14 +22,20 @@ interface SidebarProps {
 }
 
 const mainNavItems = [
-  { icon: LayoutGrid, label: "Prompt Catalog", path: "/" },
-  { icon: MessageSquare, label: "AI Chat", path: "/chat" },
-  { icon: Bot, label: "My Assistants", path: "/assistants" },
+  { icon: Home, label: "Главная", path: "/" },
+  { icon: MessageSquare, label: "ИИ Чат", path: "/chat" },
+  { icon: Image, label: "Фото", path: "/photo" },
+  { icon: Video, label: "Видео", path: "/video" },
+  { icon: FileText, label: "Промты", path: "/prompts" },
+  { icon: Bot, label: "ИИ Сотрудник", path: "/assistants" },
+  { icon: Layers, label: "Мои генерации", path: "/generations" },
+  { icon: GraduationCap, label: "Обучение", path: "/training" },
 ];
 
-const libraryNavItems = [
-  { icon: Bookmark, label: "My Library", path: "/library" },
-  { icon: Clock, label: "History", path: "/history" },
+const bottomNavItems = [
+  { icon: CreditCard, label: "Подписка", path: "/subscription" },
+  { icon: User, label: "Профиль", path: "/profile" },
+  { icon: HelpCircle, label: "Поддержка", path: "/support" },
 ];
 
 export function Sidebar({ isOpen, onClose }: SidebarProps) {
@@ -35,7 +46,7 @@ export function Sidebar({ isOpen, onClose }: SidebarProps) {
     label, 
     path 
   }: { 
-    icon: typeof LayoutGrid; 
+    icon: typeof Home; 
     label: string; 
     path: string;
   }) => {
@@ -84,7 +95,7 @@ export function Sidebar({ isOpen, onClose }: SidebarProps) {
           </div>
 
           {/* Navigation */}
-          <nav className="flex-1 space-y-1 px-3 py-4">
+          <nav className="flex-1 space-y-1 px-3 py-4 overflow-y-auto">
             {/* Main section */}
             <div className="space-y-1">
               {mainNavItems.map((item) => (
@@ -95,26 +106,13 @@ export function Sidebar({ isOpen, onClose }: SidebarProps) {
             {/* Divider */}
             <div className="my-4 h-px bg-sidebar-border" />
 
-            {/* Library section */}
+            {/* Bottom section */}
             <div className="space-y-1">
-              <p className="mb-2 px-3 text-xs font-medium uppercase tracking-wider text-muted-foreground">
-                Library
-              </p>
-              {libraryNavItems.map((item) => (
+              {bottomNavItems.map((item) => (
                 <NavItem key={item.path} {...item} />
               ))}
             </div>
           </nav>
-
-          {/* Footer */}
-          <div className="border-t border-sidebar-border p-4">
-            <NavLink to="/settings">
-              <div className="flex items-center gap-3 rounded-xl px-3 py-2.5 text-sm font-medium text-sidebar-foreground transition-colors hover:bg-secondary hover:text-foreground">
-                <Settings className="h-5 w-5" />
-                <span>Settings</span>
-              </div>
-            </NavLink>
-          </div>
         </div>
       </aside>
     </>
