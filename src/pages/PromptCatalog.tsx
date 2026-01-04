@@ -1,6 +1,6 @@
 import { useState } from "react";
 import { useNavigate } from "react-router-dom";
-import { Search, Filter, SlidersHorizontal } from "lucide-react";
+import { Search, Filter, SlidersHorizontal, Image, Video, FileText, LayoutGrid } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Badge } from "@/components/ui/badge";
@@ -8,12 +8,22 @@ import { PromptCard } from "@/components/prompts/PromptCard";
 import { prompts } from "@/data/mockData";
 import { cn } from "@/lib/utils";
 
+type ContentType = "all" | "text" | "photo" | "video";
+
+const contentTypes = [
+  { id: "all" as const, label: "Все", icon: LayoutGrid },
+  { id: "text" as const, label: "Текст", icon: FileText },
+  { id: "photo" as const, label: "Фото", icon: Image },
+  { id: "video" as const, label: "Видео", icon: Video },
+];
+
 const categories = ["All", "Marketing", "Code", "Content", "Data", "Support"];
 const models = ["All Models", "GPT", "Claude", "Gemini"];
 
 export default function PromptCatalog() {
   const navigate = useNavigate();
   const [searchQuery, setSearchQuery] = useState("");
+  const [selectedContentType, setSelectedContentType] = useState<ContentType>("all");
   const [selectedCategory, setSelectedCategory] = useState("All");
   const [selectedModel, setSelectedModel] = useState("All Models");
   const [likedPrompts, setLikedPrompts] = useState<Set<string>>(
@@ -49,8 +59,28 @@ export default function PromptCatalog() {
     <div className="p-6 lg:p-8">
       {/* Header */}
       <div className="mb-8">
-        <h1 className="text-2xl font-bold text-foreground mb-2">Prompt Catalog</h1>
-        <p className="text-muted-foreground">Discover and use powerful prompts for your AI workflows</p>
+        <h1 className="text-2xl font-bold text-foreground mb-2">Каталог промтов</h1>
+        <p className="text-muted-foreground">Готовые промты для текста, изображений и видео</p>
+      </div>
+
+      {/* Content Type Filter */}
+      <div className="mb-6 flex gap-2">
+        {contentTypes.map((type) => {
+          const Icon = type.icon;
+          const isActive = selectedContentType === type.id;
+          return (
+            <Button
+              key={type.id}
+              variant={isActive ? "default" : "outline"}
+              size="sm"
+              onClick={() => setSelectedContentType(type.id)}
+              className="gap-2"
+            >
+              <Icon className="h-4 w-4" />
+              {type.label}
+            </Button>
+          );
+        })}
       </div>
 
       {/* Search and Filters */}
@@ -61,18 +91,18 @@ export default function PromptCatalog() {
             <Input
               value={searchQuery}
               onChange={(e) => setSearchQuery(e.target.value)}
-              placeholder="Search prompts..."
+              placeholder="Поиск промтов..."
               className="pl-10"
             />
           </div>
           <div className="flex gap-2">
             <Button variant="outline" className="gap-2">
               <Filter className="h-4 w-4" />
-              <span className="hidden sm:inline">Filters</span>
+              <span className="hidden sm:inline">Фильтры</span>
             </Button>
             <Button variant="outline" className="gap-2">
               <SlidersHorizontal className="h-4 w-4" />
-              <span className="hidden sm:inline">Sort</span>
+              <span className="hidden sm:inline">Сортировка</span>
             </Button>
           </div>
         </div>
@@ -113,7 +143,7 @@ export default function PromptCatalog() {
       {/* Results count */}
       <div className="mb-4">
         <p className="text-sm text-muted-foreground">
-          Showing {filteredPrompts.length} prompts
+          Найдено {filteredPrompts.length} промтов
         </p>
       </div>
 
@@ -140,9 +170,9 @@ export default function PromptCatalog() {
           <div className="mb-4 flex h-16 w-16 items-center justify-center rounded-full bg-secondary">
             <Search className="h-8 w-8 text-muted-foreground" />
           </div>
-          <h3 className="mb-2 text-lg font-semibold text-foreground">No prompts found</h3>
+          <h3 className="mb-2 text-lg font-semibold text-foreground">Промты не найдены</h3>
           <p className="text-muted-foreground max-w-sm">
-            Try adjusting your search or filters to find what you're looking for.
+            Попробуйте изменить параметры поиска или фильтры.
           </p>
         </div>
       )}
