@@ -1,9 +1,8 @@
 import { useState } from "react";
 import { useNavigate } from "react-router-dom";
-import { Plus, Search } from "lucide-react";
+import { Plus, Search, Bot, MessageSquare, MoreVertical, Pencil, Trash2 } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
-import { AssistantCard } from "@/components/assistants/AssistantCard";
 import { assistants as initialAssistants } from "@/data/mockData";
 import {
   Dialog,
@@ -14,6 +13,12 @@ import {
   DialogTitle,
   DialogTrigger,
 } from "@/components/ui/dialog";
+import {
+  DropdownMenu,
+  DropdownMenuContent,
+  DropdownMenuItem,
+  DropdownMenuTrigger,
+} from "@/components/ui/dropdown-menu";
 import { Label } from "@/components/ui/label";
 import { Textarea } from "@/components/ui/textarea";
 import { cn } from "@/lib/utils";
@@ -42,8 +47,8 @@ export default function Assistants() {
   const handleCreateAssistant = () => {
     if (!newAssistant.name.trim()) {
       toast({
-        title: "Name required",
-        description: "Please enter a name for your assistant.",
+        title: "Введите имя",
+        description: "Пожалуйста, укажите имя для ИИ-сотрудника",
         variant: "destructive",
       });
       return;
@@ -59,16 +64,16 @@ export default function Assistants() {
     setIsDialogOpen(false);
     
     toast({
-      title: "Assistant created",
-      description: `${assistant.name} has been added to your assistants.`,
+      title: "ИИ-сотрудник создан",
+      description: `${assistant.name} добавлен в вашу команду`,
     });
   };
 
   const handleDeleteAssistant = (id: string) => {
     setAssistants((prev) => prev.filter((a) => a.id !== id));
     toast({
-      title: "Assistant deleted",
-      description: "The assistant has been removed.",
+      title: "ИИ-сотрудник удалён",
+      description: "Сотрудник был удалён из команды",
     });
   };
 
@@ -79,31 +84,52 @@ export default function Assistants() {
   return (
     <div className="p-6 lg:p-8">
       {/* Header */}
-      <div className="mb-8 flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4">
-        <div>
-          <h1 className="text-2xl font-bold text-foreground mb-2">My Assistants</h1>
-          <p className="text-muted-foreground">Create and manage your custom AI assistants</p>
-        </div>
+      <div className="mb-8">
+        <h1 className="text-2xl font-bold text-foreground mb-2">ИИ Сотрудники</h1>
+        <p className="text-muted-foreground">Управляйте ролями и создавайте ИИ-сотрудников</p>
+      </div>
 
+      {/* Search */}
+      <div className="relative mb-6 max-w-md">
+        <Search className="absolute left-3 top-1/2 h-4 w-4 -translate-y-1/2 text-muted-foreground" />
+        <Input
+          value={searchQuery}
+          onChange={(e) => setSearchQuery(e.target.value)}
+          placeholder="Поиск сотрудников..."
+          className="pl-10"
+        />
+      </div>
+
+      {/* Grid */}
+      <div className="grid gap-4 sm:grid-cols-2 lg:grid-cols-3">
+        {/* Create Card */}
         <Dialog open={isDialogOpen} onOpenChange={setIsDialogOpen}>
           <DialogTrigger asChild>
-            <Button variant="gradient" className="gap-2">
-              <Plus className="h-4 w-4" />
-              Create Assistant
-            </Button>
+            <div
+              className={cn(
+                "flex flex-col items-center justify-center min-h-[200px] rounded-2xl border-2 border-dashed border-border cursor-pointer transition-all",
+                "hover:border-primary/50 hover:bg-primary-soft/30",
+                "animate-fade-in opacity-0 stagger-1"
+              )}
+            >
+              <div className="h-14 w-14 rounded-xl bg-primary-soft flex items-center justify-center mb-4">
+                <Plus className="h-7 w-7 text-primary" />
+              </div>
+              <span className="font-semibold text-foreground">СОЗДАТЬ ИИ-СОТРУДНИКА</span>
+            </div>
           </DialogTrigger>
           <DialogContent className="sm:max-w-md">
             <DialogHeader>
-              <DialogTitle>Create New Assistant</DialogTitle>
+              <DialogTitle>Создать ИИ-сотрудника</DialogTitle>
               <DialogDescription>
-                Configure your custom AI assistant with a unique personality.
+                Настройте персонажа с уникальной ролью и специализацией
               </DialogDescription>
             </DialogHeader>
 
             <div className="space-y-5 py-4">
               {/* Icon selector */}
               <div className="space-y-2">
-                <Label>Icon</Label>
+                <Label>Иконка</Label>
                 <div className="flex flex-wrap gap-2">
                   {emojiOptions.map((emoji) => (
                     <button
@@ -124,7 +150,7 @@ export default function Assistants() {
 
               {/* Color selector */}
               <div className="space-y-2">
-                <Label>Color</Label>
+                <Label>Цвет</Label>
                 <div className="flex flex-wrap gap-2">
                   {colorOptions.map((color) => (
                     <button
@@ -142,23 +168,23 @@ export default function Assistants() {
 
               {/* Name */}
               <div className="space-y-2">
-                <Label htmlFor="name">Name</Label>
+                <Label htmlFor="name">Название</Label>
                 <Input
                   id="name"
                   value={newAssistant.name}
                   onChange={(e) => setNewAssistant((prev) => ({ ...prev, name: e.target.value }))}
-                  placeholder="e.g., Marketing Expert"
+                  placeholder="Например: Копирайтер"
                 />
               </div>
 
               {/* Description */}
               <div className="space-y-2">
-                <Label htmlFor="description">Description</Label>
+                <Label htmlFor="description">Описание</Label>
                 <Textarea
                   id="description"
                   value={newAssistant.description}
                   onChange={(e) => setNewAssistant((prev) => ({ ...prev, description: e.target.value }))}
-                  placeholder="Describe what this assistant specializes in..."
+                  placeholder="Опишите специализацию сотрудника..."
                   rows={3}
                 />
               </div>
@@ -166,60 +192,105 @@ export default function Assistants() {
 
             <DialogFooter>
               <Button variant="outline" onClick={() => setIsDialogOpen(false)}>
-                Cancel
+                Отмена
               </Button>
               <Button variant="gradient" onClick={handleCreateAssistant}>
-                Create Assistant
+                Создать
               </Button>
             </DialogFooter>
           </DialogContent>
         </Dialog>
-      </div>
 
-      {/* Search */}
-      <div className="relative mb-6 max-w-md">
-        <Search className="absolute left-3 top-1/2 h-4 w-4 -translate-y-1/2 text-muted-foreground" />
-        <Input
-          value={searchQuery}
-          onChange={(e) => setSearchQuery(e.target.value)}
-          placeholder="Search assistants..."
-          className="pl-10"
-        />
-      </div>
-
-      {/* Grid */}
-      <div className="grid gap-4 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4">
+        {/* Assistant Cards */}
         {filteredAssistants.map((assistant, index) => (
           <div
             key={assistant.id}
-            className={cn("animate-fade-in opacity-0", `stagger-${(index % 6) + 1}`)}
+            className={cn(
+              "group relative rounded-2xl bg-card border border-border p-6 transition-all cursor-pointer",
+              "hover:shadow-card-hover hover:border-primary/20",
+              "animate-fade-in opacity-0",
+              `stagger-${((index + 1) % 6) + 1}`
+            )}
           >
-            <AssistantCard
-              {...assistant}
-              onChat={() => handleChat(assistant)}
-              onEdit={() => toast({ title: "Edit coming soon" })}
-              onDelete={() => handleDeleteAssistant(assistant.id)}
-            />
+            {/* Menu */}
+            <DropdownMenu>
+              <DropdownMenuTrigger asChild>
+                <Button 
+                  variant="ghost" 
+                  size="icon-sm" 
+                  className="absolute top-3 right-3 opacity-0 group-hover:opacity-100 transition-opacity"
+                >
+                  <MoreVertical className="h-4 w-4" />
+                </Button>
+              </DropdownMenuTrigger>
+              <DropdownMenuContent align="end">
+                <DropdownMenuItem>
+                  <Pencil className="h-4 w-4 mr-2" />
+                  Редактировать
+                </DropdownMenuItem>
+                <DropdownMenuItem 
+                  className="text-destructive"
+                  onClick={() => handleDeleteAssistant(assistant.id)}
+                >
+                  <Trash2 className="h-4 w-4 mr-2" />
+                  Удалить
+                </DropdownMenuItem>
+              </DropdownMenuContent>
+            </DropdownMenu>
+
+            {/* Icon */}
+            <div 
+              className="h-14 w-14 rounded-xl flex items-center justify-center text-2xl mb-4"
+              style={{ backgroundColor: `${assistant.color}20` }}
+            >
+              {assistant.icon}
+            </div>
+
+            {/* Content */}
+            <h3 className="font-semibold text-foreground mb-2">{assistant.name}</h3>
+            <p className="text-sm text-muted-foreground line-clamp-2 mb-4">{assistant.description}</p>
+
+            {/* Chat button */}
+            <Button 
+              variant="outline" 
+              size="sm" 
+              className="w-full gap-2"
+              onClick={() => handleChat(assistant)}
+            >
+              <MessageSquare className="h-4 w-4" />
+              Чат
+            </Button>
+          </div>
+        ))}
+
+        {/* Empty slots */}
+        {filteredAssistants.length < 5 && Array.from({ length: Math.max(0, 2 - filteredAssistants.length) }).map((_, index) => (
+          <div
+            key={`empty-${index}`}
+            className={cn(
+              "flex flex-col items-center justify-center min-h-[200px] rounded-2xl border border-dashed border-border",
+              "animate-fade-in opacity-0",
+              `stagger-${((filteredAssistants.length + index + 2) % 6) + 1}`
+            )}
+          >
+            <div className="h-14 w-14 rounded-xl bg-secondary flex items-center justify-center mb-4">
+              <Bot className="h-7 w-7 text-muted-foreground" />
+            </div>
+            <span className="text-sm text-muted-foreground">Пустой слот</span>
           </div>
         ))}
       </div>
 
-      {/* Empty state */}
-      {filteredAssistants.length === 0 && (
+      {/* Empty state when searching */}
+      {searchQuery && filteredAssistants.length === 0 && (
         <div className="flex flex-col items-center justify-center py-16 text-center">
           <div className="mb-4 flex h-16 w-16 items-center justify-center rounded-full bg-secondary text-3xl">
             🤖
           </div>
-          <h3 className="mb-2 text-lg font-semibold text-foreground">No assistants found</h3>
-          <p className="text-muted-foreground max-w-sm mb-6">
-            {searchQuery ? "Try a different search term." : "Create your first custom AI assistant to get started."}
+          <h3 className="mb-2 text-lg font-semibold text-foreground">Сотрудники не найдены</h3>
+          <p className="text-muted-foreground max-w-sm">
+            Попробуйте другой поисковый запрос
           </p>
-          {!searchQuery && (
-            <Button variant="gradient" onClick={() => setIsDialogOpen(true)}>
-              <Plus className="mr-2 h-4 w-4" />
-              Create Assistant
-            </Button>
-          )}
         </div>
       )}
     </div>

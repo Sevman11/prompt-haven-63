@@ -5,12 +5,17 @@ import { QueryClient, QueryClientProvider } from "@tanstack/react-query";
 import { BrowserRouter, Routes, Route } from "react-router-dom";
 import { DashboardLayout } from "@/components/layout/DashboardLayout";
 import Index from "./pages/Index";
+import PromptCatalog from "./pages/PromptCatalog";
 import PromptDetail from "./pages/PromptDetail";
 import AIChat from "./pages/AIChat";
+import Photo from "./pages/Photo";
+import Video from "./pages/Video";
 import Assistants from "./pages/Assistants";
-import Library from "./pages/Library";
-import History from "./pages/History";
-import Settings from "./pages/Settings";
+import Generations from "./pages/Generations";
+import Training from "./pages/Training";
+import Subscription from "./pages/Subscription";
+import Profile from "./pages/Profile";
+import Support from "./pages/Support";
 import NotFound from "./pages/NotFound";
 
 const queryClient = new QueryClient();
@@ -24,12 +29,17 @@ const App = () => (
         <DashboardLayout>
           <Routes>
             <Route path="/" element={<Index />} />
-            <Route path="/prompt/:id" element={<PromptDetail />} />
             <Route path="/chat" element={<AIChat />} />
+            <Route path="/photo" element={<Photo />} />
+            <Route path="/video" element={<Video />} />
+            <Route path="/prompts" element={<PromptCatalog />} />
+            <Route path="/prompt/:id" element={<PromptDetail />} />
             <Route path="/assistants" element={<Assistants />} />
-            <Route path="/library" element={<Library />} />
-            <Route path="/history" element={<History />} />
-            <Route path="/settings" element={<Settings />} />
+            <Route path="/generations" element={<Generations />} />
+            <Route path="/training" element={<Training />} />
+            <Route path="/subscription" element={<Subscription />} />
+            <Route path="/profile" element={<Profile />} />
+            <Route path="/support" element={<Support />} />
             <Route path="*" element={<NotFound />} />
           </Routes>
         </DashboardLayout>
