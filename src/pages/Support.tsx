@@ -3,12 +3,15 @@ import {
   Send, 
   Clock,
   MessageCircle,
-  ChevronDown
+  ChevronRight,
+  User,
+  Headphones
 } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Textarea } from "@/components/ui/textarea";
+import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { 
   Select,
   SelectContent,
@@ -23,6 +26,7 @@ import {
   AccordionTrigger,
 } from "@/components/ui/accordion";
 import { toast } from "@/hooks/use-toast";
+import { cn } from "@/lib/utils";
 
 const categories = [
   "Техническая проблема",
@@ -59,12 +63,50 @@ const faqItems = [
   },
 ];
 
+const previousTickets = [
+  { 
+    id: "1", 
+    subject: "Проблема с генерацией", 
+    status: "resolved",
+    date: "15 дек 2024",
+    messages: [
+      { role: "user", text: "Не могу сгенерировать изображение, выдает ошибку", time: "10:30" },
+      { role: "support", text: "Здравствуйте! Уточните, пожалуйста, какую именно ошибку вы видите?", time: "11:45" },
+      { role: "user", text: "Ошибка 500 при нажатии на кнопку генерации", time: "12:00" },
+      { role: "support", text: "Проблема была связана с перегрузкой сервера. Сейчас всё должно работать корректно. Попробуйте снова.", time: "14:30" },
+    ]
+  },
+  { 
+    id: "2", 
+    subject: "Вопрос по тарифу Pro", 
+    status: "resolved",
+    date: "10 дек 2024",
+    messages: [
+      { role: "user", text: "Подскажите, в чём отличие тарифа Pro от базового?", time: "09:15" },
+      { role: "support", text: "Тариф Pro включает: неограниченные генерации, приоритетную очередь, доступ ко всем моделям ИИ и бессрочное хранение результатов.", time: "10:00" },
+    ]
+  },
+  { 
+    id: "3", 
+    subject: "Запрос на возврат", 
+    status: "open",
+    date: "20 дек 2024",
+    messages: [
+      { role: "user", text: "Хотел бы оформить возврат за подписку", time: "16:00" },
+      { role: "support", text: "Добрый день! Для оформления возврата уточните причину и номер заказа.", time: "17:30" },
+    ]
+  },
+];
+
 export default function Support() {
   const [formData, setFormData] = useState({
     subject: "",
     category: "",
     message: "",
   });
+  const [mainTab, setMainTab] = useState("form");
+  const [selectedTicket, setSelectedTicket] = useState<typeof previousTickets[0] | null>(null);
+  const [newMessage, setNewMessage] = useState("");
 
   const handleSubmit = (e: React.FormEvent) => {
     e.preventDefault();
@@ -84,6 +126,15 @@ export default function Support() {
     setFormData({ subject: "", category: "", message: "" });
   };
 
+  const handleSendMessage = () => {
+    if (!newMessage.trim()) return;
+    toast({
+      title: "Сообщение отправлено",
+      description: "Ожидайте ответа от поддержки",
+    });
+    setNewMessage("");
+  };
+
   return (
     <div className="flex h-[calc(100vh-4rem)]">
       {/* Main Content */}
@@ -96,59 +147,185 @@ export default function Support() {
           </p>
         </div>
 
-        {/* Form */}
+        {/* Tabs: Form / My Tickets */}
         <div className="flex-1 overflow-y-auto p-6 lg:p-8">
           <div className="max-w-2xl mx-auto">
-            <form onSubmit={handleSubmit} className="space-y-6">
-              <div className="p-6 rounded-2xl bg-card border border-border">
-                <h2 className="text-lg font-semibold text-foreground mb-6">Форма обращения</h2>
-                
-                <div className="space-y-4">
-                  <div className="space-y-2">
-                    <Label htmlFor="subject">Тема</Label>
-                    <Input 
-                      id="subject"
-                      value={formData.subject}
-                      onChange={(e) => setFormData(prev => ({ ...prev, subject: e.target.value }))}
-                      placeholder="Кратко опишите проблему"
-                    />
-                  </div>
+            <Tabs value={mainTab} onValueChange={setMainTab} className="w-full">
+              <TabsList className="mb-6">
+                <TabsTrigger value="form">Форма обращения</TabsTrigger>
+                <TabsTrigger value="tickets">Мои обращения</TabsTrigger>
+              </TabsList>
 
-                  <div className="space-y-2">
-                    <Label htmlFor="category">Категория</Label>
-                    <Select 
-                      value={formData.category} 
-                      onValueChange={(value) => setFormData(prev => ({ ...prev, category: value }))}
+              <TabsContent value="form" className="mt-0">
+                <form onSubmit={handleSubmit} className="space-y-6">
+                  <div className="p-6 rounded-2xl bg-card border border-border">
+                    <h2 className="text-lg font-semibold text-foreground mb-6">Новое обращение</h2>
+                    
+                    <div className="space-y-4">
+                      <div className="space-y-2">
+                        <Label htmlFor="subject">Тема</Label>
+                        <Input 
+                          id="subject"
+                          value={formData.subject}
+                          onChange={(e) => setFormData(prev => ({ ...prev, subject: e.target.value }))}
+                          placeholder="Кратко опишите проблему"
+                        />
+                      </div>
+
+                      <div className="space-y-2">
+                        <Label htmlFor="category">Категория</Label>
+                        <Select 
+                          value={formData.category} 
+                          onValueChange={(value) => setFormData(prev => ({ ...prev, category: value }))}
+                        >
+                          <SelectTrigger>
+                            <SelectValue placeholder="Выберите категорию" />
+                          </SelectTrigger>
+                          <SelectContent>
+                            {categories.map((cat) => (
+                              <SelectItem key={cat} value={cat}>{cat}</SelectItem>
+                            ))}
+                          </SelectContent>
+                        </Select>
+                      </div>
+
+                      <div className="space-y-2">
+                        <Label htmlFor="message">Сообщение</Label>
+                        <Textarea 
+                          id="message"
+                          value={formData.message}
+                          onChange={(e) => setFormData(prev => ({ ...prev, message: e.target.value }))}
+                          placeholder="Подробно опишите вашу проблему или вопрос..."
+                          className="min-h-[150px] resize-none"
+                        />
+                      </div>
+
+                      <Button type="submit" variant="gradient" className="w-full gap-2">
+                        <Send className="h-4 w-4" />
+                        Отправить обращение
+                      </Button>
+                    </div>
+                  </div>
+                </form>
+              </TabsContent>
+
+              <TabsContent value="tickets" className="mt-0">
+                {!selectedTicket ? (
+                  <div className="space-y-3">
+                    {previousTickets.map((ticket) => (
+                      <div
+                        key={ticket.id}
+                        onClick={() => setSelectedTicket(ticket)}
+                        className={cn(
+                          "p-4 rounded-xl bg-card border border-border cursor-pointer transition-all",
+                          "hover:shadow-card-hover hover:border-primary/20"
+                        )}
+                      >
+                        <div className="flex items-center justify-between">
+                          <div className="flex-1">
+                            <div className="flex items-center gap-2 mb-1">
+                              <h3 className="font-medium text-foreground">{ticket.subject}</h3>
+                              <span className={cn(
+                                "text-xs px-2 py-0.5 rounded-full",
+                                ticket.status === "resolved" 
+                                  ? "bg-green-500/10 text-green-600" 
+                                  : "bg-yellow-500/10 text-yellow-600"
+                              )}>
+                                {ticket.status === "resolved" ? "Решено" : "Открыто"}
+                              </span>
+                            </div>
+                            <p className="text-sm text-muted-foreground">{ticket.date}</p>
+                          </div>
+                          <ChevronRight className="h-5 w-5 text-muted-foreground" />
+                        </div>
+                      </div>
+                    ))}
+
+                    {previousTickets.length === 0 && (
+                      <div className="flex flex-col items-center justify-center py-16 text-center">
+                        <div className="mb-4 flex h-16 w-16 items-center justify-center rounded-full bg-secondary">
+                          <MessageCircle className="h-8 w-8 text-muted-foreground" />
+                        </div>
+                        <h3 className="mb-2 text-lg font-semibold text-foreground">Нет обращений</h3>
+                        <p className="text-muted-foreground max-w-sm">
+                          У вас пока нет обращений в поддержку
+                        </p>
+                      </div>
+                    )}
+                  </div>
+                ) : (
+                  <div className="space-y-4">
+                    {/* Back button */}
+                    <Button 
+                      variant="ghost" 
+                      size="sm" 
+                      onClick={() => setSelectedTicket(null)}
+                      className="mb-2"
                     >
-                      <SelectTrigger>
-                        <SelectValue placeholder="Выберите категорию" />
-                      </SelectTrigger>
-                      <SelectContent>
-                        {categories.map((cat) => (
-                          <SelectItem key={cat} value={cat}>{cat}</SelectItem>
-                        ))}
-                      </SelectContent>
-                    </Select>
-                  </div>
+                      ← Назад к списку
+                    </Button>
 
-                  <div className="space-y-2">
-                    <Label htmlFor="message">Сообщение</Label>
-                    <Textarea 
-                      id="message"
-                      value={formData.message}
-                      onChange={(e) => setFormData(prev => ({ ...prev, message: e.target.value }))}
-                      placeholder="Подробно опишите вашу проблему или вопрос..."
-                      className="min-h-[150px] resize-none"
-                    />
-                  </div>
+                    {/* Ticket header */}
+                    <div className="p-4 rounded-xl bg-card border border-border">
+                      <div className="flex items-center gap-2 mb-1">
+                        <h3 className="font-medium text-foreground">{selectedTicket.subject}</h3>
+                        <span className={cn(
+                          "text-xs px-2 py-0.5 rounded-full",
+                          selectedTicket.status === "resolved" 
+                            ? "bg-green-500/10 text-green-600" 
+                            : "bg-yellow-500/10 text-yellow-600"
+                        )}>
+                          {selectedTicket.status === "resolved" ? "Решено" : "Открыто"}
+                        </span>
+                      </div>
+                      <p className="text-sm text-muted-foreground">{selectedTicket.date}</p>
+                    </div>
 
-                  <Button type="submit" variant="gradient" className="w-full gap-2">
-                    <Send className="h-4 w-4" />
-                    Отправить обращение
-                  </Button>
-                </div>
-              </div>
-            </form>
+                    {/* Messages */}
+                    <div className="space-y-3">
+                      {selectedTicket.messages.map((msg, index) => (
+                        <div
+                          key={index}
+                          className={cn(
+                            "p-4 rounded-xl max-w-[85%]",
+                            msg.role === "user" 
+                              ? "bg-primary text-primary-foreground ml-auto" 
+                              : "bg-secondary"
+                          )}
+                        >
+                          <div className="flex items-center gap-2 mb-2">
+                            {msg.role === "user" ? (
+                              <User className="h-4 w-4" />
+                            ) : (
+                              <Headphones className="h-4 w-4" />
+                            )}
+                            <span className="text-xs opacity-70">
+                              {msg.role === "user" ? "Вы" : "Поддержка"} • {msg.time}
+                            </span>
+                          </div>
+                          <p className="text-sm">{msg.text}</p>
+                        </div>
+                      ))}
+                    </div>
+
+                    {/* Reply input */}
+                    {selectedTicket.status === "open" && (
+                      <div className="flex gap-2">
+                        <Input
+                          value={newMessage}
+                          onChange={(e) => setNewMessage(e.target.value)}
+                          placeholder="Напишите ответ..."
+                          onKeyDown={(e) => e.key === "Enter" && handleSendMessage()}
+                        />
+                        <Button variant="gradient" onClick={handleSendMessage}>
+                          <Send className="h-4 w-4" />
+                        </Button>
+                      </div>
+                    )}
+                  </div>
+                )}
+              </TabsContent>
+            </Tabs>
 
             {/* FAQ - Mobile */}
             <div className="mt-8 lg:hidden">

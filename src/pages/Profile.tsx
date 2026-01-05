@@ -57,7 +57,7 @@ export default function Profile() {
   };
 
   return (
-    <div className="p-6 lg:p-8 max-w-3xl">
+    <div className="p-6 lg:p-8 max-w-4xl">
       {/* Header */}
       <div className="mb-8">
         <h1 className="text-2xl font-bold text-foreground mb-2">Профиль</h1>
@@ -100,53 +100,56 @@ export default function Profile() {
           </CardContent>
         </Card>
 
-        {/* Change Password */}
-        <Card>
-          <CardHeader>
-            <CardTitle className="flex items-center gap-2">
-              <Lock className="h-5 w-5 text-primary" />
-              Смена пароля
-            </CardTitle>
-            <CardDescription>Обновите пароль для защиты аккаунта</CardDescription>
-          </CardHeader>
-          <CardContent className="space-y-4">
-            <div className="space-y-2">
-              <Label htmlFor="currentPassword">Текущий пароль</Label>
-              <Input id="currentPassword" type="password" />
-            </div>
-            <div className="space-y-2">
-              <Label htmlFor="newPassword">Новый пароль</Label>
-              <Input id="newPassword" type="password" />
-            </div>
-            <div className="space-y-2">
-              <Label htmlFor="confirmPassword">Подтвердите пароль</Label>
-              <Input id="confirmPassword" type="password" />
-            </div>
-            <Button variant="gradient">Сохранить пароль</Button>
-          </CardContent>
-        </Card>
+        {/* Change Password and Email - Horizontal */}
+        <div className="grid gap-6 lg:grid-cols-2">
+          {/* Change Password */}
+          <Card>
+            <CardHeader>
+              <CardTitle className="flex items-center gap-2">
+                <Lock className="h-5 w-5 text-primary" />
+                Смена пароля
+              </CardTitle>
+              <CardDescription>Обновите пароль для защиты аккаунта</CardDescription>
+            </CardHeader>
+            <CardContent className="space-y-4">
+              <div className="space-y-2">
+                <Label htmlFor="currentPassword">Текущий пароль</Label>
+                <Input id="currentPassword" type="password" />
+              </div>
+              <div className="space-y-2">
+                <Label htmlFor="newPassword">Новый пароль</Label>
+                <Input id="newPassword" type="password" />
+              </div>
+              <div className="space-y-2">
+                <Label htmlFor="confirmPassword">Подтвердите пароль</Label>
+                <Input id="confirmPassword" type="password" />
+              </div>
+              <Button variant="gradient">Сохранить пароль</Button>
+            </CardContent>
+          </Card>
 
-        {/* Change Email */}
-        <Card>
-          <CardHeader>
-            <CardTitle className="flex items-center gap-2">
-              <Mail className="h-5 w-5 text-primary" />
-              Смена e-mail
-            </CardTitle>
-            <CardDescription>Измените адрес электронной почты</CardDescription>
-          </CardHeader>
-          <CardContent className="space-y-4">
-            <div className="space-y-2">
-              <Label htmlFor="newEmail">Новый e-mail</Label>
-              <Input id="newEmail" type="email" placeholder="newemail@example.com" />
-            </div>
-            <div className="space-y-2">
-              <Label htmlFor="passwordConfirm">Пароль для подтверждения</Label>
-              <Input id="passwordConfirm" type="password" />
-            </div>
-            <Button variant="gradient">Изменить e-mail</Button>
-          </CardContent>
-        </Card>
+          {/* Change Email */}
+          <Card>
+            <CardHeader>
+              <CardTitle className="flex items-center gap-2">
+                <Mail className="h-5 w-5 text-primary" />
+                Смена e-mail
+              </CardTitle>
+              <CardDescription>Измените адрес электронной почты</CardDescription>
+            </CardHeader>
+            <CardContent className="space-y-4">
+              <div className="space-y-2">
+                <Label htmlFor="newEmail">Новый e-mail</Label>
+                <Input id="newEmail" type="email" placeholder="newemail@example.com" />
+              </div>
+              <div className="space-y-2">
+                <Label htmlFor="passwordConfirm">Пароль для подтверждения</Label>
+                <Input id="passwordConfirm" type="password" />
+              </div>
+              <Button variant="gradient">Изменить e-mail</Button>
+            </CardContent>
+          </Card>
+        </div>
 
         {/* Notifications */}
         <Card>
