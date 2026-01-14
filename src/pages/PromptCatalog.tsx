@@ -1,9 +1,10 @@
 import { useState } from "react";
 import { useNavigate } from "react-router-dom";
-import { Search, Filter, SlidersHorizontal, Image, Video, FileText, LayoutGrid } from "lucide-react";
+import { Search, Filter, SlidersHorizontal, Image, Video, FileText, LayoutGrid, Bookmark, BookmarkCheck } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Badge } from "@/components/ui/badge";
+import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { PromptCard } from "@/components/prompts/PromptCard";
 import { prompts } from "@/data/mockData";
 import { cn } from "@/lib/utils";
@@ -22,29 +23,35 @@ const models = ["All Models", "GPT", "Claude", "Gemini"];
 
 export default function PromptCatalog() {
   const navigate = useNavigate();
+  const [activeTab, setActiveTab] = useState("catalog");
   const [searchQuery, setSearchQuery] = useState("");
   const [selectedContentType, setSelectedContentType] = useState<ContentType>("all");
   const [selectedCategory, setSelectedCategory] = useState("All");
   const [selectedModel, setSelectedModel] = useState("All Models");
-  const [likedPrompts, setLikedPrompts] = useState<Set<string>>(
+  const [savedPrompts, setSavedPrompts] = useState<Set<string>>(
     new Set(prompts.filter(p => p.isLiked).map(p => p.id))
   );
 
-  const filteredPrompts = prompts.filter((prompt) => {
-    const matchesSearch = prompt.title.toLowerCase().includes(searchQuery.toLowerCase()) ||
-      prompt.preview.toLowerCase().includes(searchQuery.toLowerCase()) ||
-      prompt.tags.some(tag => tag.toLowerCase().includes(searchQuery.toLowerCase()));
-    
-    const matchesCategory = selectedCategory === "All" ||
-      prompt.tags.some(tag => tag.toLowerCase().includes(selectedCategory.toLowerCase()));
-    
-    const matchesModel = selectedModel === "All Models" || prompt.model === selectedModel;
+  const filterPrompts = (promptsList: typeof prompts) => {
+    return promptsList.filter((prompt) => {
+      const matchesSearch = prompt.title.toLowerCase().includes(searchQuery.toLowerCase()) ||
+        prompt.preview.toLowerCase().includes(searchQuery.toLowerCase()) ||
+        prompt.tags.some(tag => tag.toLowerCase().includes(searchQuery.toLowerCase()));
+      
+      const matchesCategory = selectedCategory === "All" ||
+        prompt.tags.some(tag => tag.toLowerCase().includes(selectedCategory.toLowerCase()));
+      
+      const matchesModel = selectedModel === "All Models" || prompt.model === selectedModel;
 
-    return matchesSearch && matchesCategory && matchesModel;
-  });
+      return matchesSearch && matchesCategory && matchesModel;
+    });
+  };
 
-  const toggleLike = (id: string) => {
-    setLikedPrompts(prev => {
+  const filteredCatalogPrompts = filterPrompts(prompts);
+  const filteredMyPrompts = filterPrompts(prompts.filter(p => savedPrompts.has(p.id)));
+
+  const toggleSave = (id: string) => {
+    setSavedPrompts(prev => {
       const next = new Set(prev);
       if (next.has(id)) {
         next.delete(id);
@@ -55,14 +62,8 @@ export default function PromptCatalog() {
     });
   };
 
-  return (
-    <div className="p-6 lg:p-8">
-      {/* Header */}
-      <div className="mb-8">
-        <h1 className="text-2xl font-bold text-foreground mb-2">Каталог промтов</h1>
-        <p className="text-muted-foreground">Готовые промты для текста, изображений и видео</p>
-      </div>
-
+  const renderFilters = () => (
+    <>
       {/* Content Type Filter */}
       <div className="mb-6 flex gap-2">
         {contentTypes.map((type) => {
@@ -139,43 +140,89 @@ export default function PromptCatalog() {
           ))}
         </div>
       </div>
+    </>
+  );
 
+  const renderPromptGrid = (promptsList: typeof prompts, isMy: boolean = false) => (
+    <>
       {/* Results count */}
       <div className="mb-4">
         <p className="text-sm text-muted-foreground">
-          Найдено {filteredPrompts.length} промтов
+          Найдено {promptsList.length} промтов
         </p>
       </div>
 
       {/* Prompts Grid */}
       <div className="grid gap-4 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4">
-        {filteredPrompts.map((prompt, index) => (
+        {promptsList.map((prompt, index) => (
           <div
             key={prompt.id}
             className={cn("animate-fade-in opacity-0", `stagger-${(index % 6) + 1}`)}
           >
             <PromptCard
               {...prompt}
-              isLiked={likedPrompts.has(prompt.id)}
+              isLiked={savedPrompts.has(prompt.id)}
               onClick={() => navigate(`/prompt/${prompt.id}`)}
-              onLike={() => toggleLike(prompt.id)}
+              onLike={() => toggleSave(prompt.id)}
             />
           </div>
         ))}
       </div>
 
       {/* Empty state */}
-      {filteredPrompts.length === 0 && (
+      {promptsList.length === 0 && (
         <div className="flex flex-col items-center justify-center py-16 text-center">
           <div className="mb-4 flex h-16 w-16 items-center justify-center rounded-full bg-secondary">
-            <Search className="h-8 w-8 text-muted-foreground" />
+            {isMy ? <Bookmark className="h-8 w-8 text-muted-foreground" /> : <Search className="h-8 w-8 text-muted-foreground" />}
           </div>
-          <h3 className="mb-2 text-lg font-semibold text-foreground">Промты не найдены</h3>
+          <h3 className="mb-2 text-lg font-semibold text-foreground">
+            {isMy ? "Нет сохранённых промтов" : "Промты не найдены"}
+          </h3>
           <p className="text-muted-foreground max-w-sm">
-            Попробуйте изменить параметры поиска или фильтры.
+            {isMy ? "Добавьте промты в избранное, нажав на иконку сердечка." : "Попробуйте изменить параметры поиска или фильтры."}
           </p>
         </div>
       )}
+    </>
+  );
+
+  return (
+    <div className="p-6 lg:p-8">
+      {/* Header */}
+      <div className="mb-8">
+        <h1 className="text-2xl font-bold text-foreground mb-2">Каталог промтов</h1>
+        <p className="text-muted-foreground">Готовые промты для текста, изображений и видео</p>
+      </div>
+
+      {/* Tabs */}
+      <Tabs value={activeTab} onValueChange={setActiveTab} className="w-full">
+        <TabsList className="mb-6">
+          <TabsTrigger value="catalog" className="gap-2">
+            <LayoutGrid className="h-4 w-4" />
+            Каталог промтов
+          </TabsTrigger>
+          <TabsTrigger value="my" className="gap-2">
+            <BookmarkCheck className="h-4 w-4" />
+            Мои промты
+            {savedPrompts.size > 0 && (
+              <Badge variant="secondary" className="ml-1 h-5 px-1.5 text-xs">
+                {savedPrompts.size}
+              </Badge>
+            )}
+          </TabsTrigger>
+        </TabsList>
+
+        <TabsContent value="catalog">
+          {renderFilters()}
+          {renderPromptGrid(filteredCatalogPrompts)}
+        </TabsContent>
+
+        <TabsContent value="my">
+          {renderFilters()}
+          {renderPromptGrid(filteredMyPrompts, true)}
+        </TabsContent>
+      </Tabs>
+
     </div>
   );
 }
