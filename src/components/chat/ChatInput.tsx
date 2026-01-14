@@ -8,16 +8,23 @@ interface ChatInputProps {
   isLoading?: boolean;
   placeholder?: string;
   className?: string;
+  value?: string;
+  onChange?: (value: string) => void;
 }
 
 export function ChatInput({ 
   onSend, 
   isLoading = false, 
   placeholder = "Type your message...",
-  className 
+  className,
+  value,
+  onChange
 }: ChatInputProps) {
-  const [message, setMessage] = useState("");
+  const [internalMessage, setInternalMessage] = useState("");
   const textareaRef = useRef<HTMLTextAreaElement>(null);
+
+  const message = value !== undefined ? value : internalMessage;
+  const setMessage = onChange || setInternalMessage;
 
   useEffect(() => {
     if (textareaRef.current) {

@@ -44,7 +44,7 @@ export function Header({ onMenuToggle }: HeaderProps) {
               <Sparkles className="h-5 w-5 text-primary-foreground" />
             </div>
             <span className="text-lg font-semibold text-foreground hidden sm:inline">
-              PromptHub
+              Astra Promt
             </span>
           </div>
         </div>
