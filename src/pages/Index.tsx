@@ -73,7 +73,7 @@ export default function Index() {
       {/* Header */}
       <div className="mb-10 text-center">
         <h1 className="text-3xl lg:text-4xl font-bold text-foreground mb-3">
-          ДОБРО ПОЖАЛОВАТЬ В <span className="text-primary">PromtHub</span>
+          ДОБРО ПОЖАЛОВАТЬ В <span className="text-primary">Astra Promt</span>
         </h1>
         <p className="text-lg text-muted-foreground max-w-2xl mx-auto">
           Ваша личная фабрика контента. Начните создавать прямо сейчас!

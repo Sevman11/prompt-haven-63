@@ -6,7 +6,9 @@ import {
   Sparkles,
   Download,
   Heart,
-  Play
+  Play,
+  Wand2,
+  Languages
 } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Textarea } from "@/components/ui/textarea";
@@ -18,11 +20,31 @@ import {
   SelectTrigger,
   SelectValue,
 } from "@/components/ui/select";
+import {
+  Tooltip,
+  TooltipContent,
+  TooltipProvider,
+  TooltipTrigger,
+} from "@/components/ui/tooltip";
 import { cn } from "@/lib/utils";
 
-const models = ["Sora", "Runway Gen-2", "Pika Labs", "Stable Video"];
-const orientations = ["Горизонтальное", "Вертикальное", "Квадрат"];
-const durations = ["4 сек", "8 сек", "16 сек"];
+const models = ["Sora", "Runway Gen-3", "Pika Labs", "Stable Video", "Kling AI", "Luma Dream Machine"];
+
+const orientations = [
+  { value: "horizontal", label: "Горизонтальное 16:9", ratio: "16:9" },
+  { value: "vertical", label: "Вертикальное 9:16", ratio: "9:16" },
+  { value: "square", label: "Квадрат 1:1", ratio: "1:1" },
+  { value: "cinema", label: "Кино 21:9", ratio: "21:9" },
+  { value: "tiktok", label: "TikTok/Reels 9:16", ratio: "9:16" },
+  { value: "youtube", label: "YouTube 16:9", ratio: "16:9" },
+  { value: "shorts", label: "YouTube Shorts 9:16", ratio: "9:16" },
+];
+
+const durations = [
+  { value: "5", label: "5 секунд" },
+  { value: "10", label: "10 секунд" },
+  { value: "15", label: "15 секунд" },
+];
 
 const exampleVideos = [
   { id: "1", title: "Полет над горами", description: "Аэросъемка горного пейзажа", thumbnail: "/placeholder.svg" },
@@ -41,13 +63,24 @@ export default function Video() {
   const [prompt, setPrompt] = useState("");
   const [activeTab, setActiveTab] = useState("text-to-video");
   const [selectedModel, setSelectedModel] = useState(models[0]);
-  const [selectedOrientation, setSelectedOrientation] = useState(orientations[0]);
-  const [selectedDuration, setSelectedDuration] = useState(durations[0]);
+  const [selectedOrientation, setSelectedOrientation] = useState(orientations[0].value);
+  const [selectedDuration, setSelectedDuration] = useState(durations[0].value);
   const [galleryTab, setGalleryTab] = useState("examples");
 
   const handleSubmit = () => {
     if (!prompt.trim()) return;
     console.log("Generate:", { prompt, model: selectedModel, orientation: selectedOrientation, duration: selectedDuration });
+  };
+
+  const handleImprovePrompt = () => {
+    if (!prompt.trim()) return;
+    const improved = `${prompt}, cinematic quality, smooth motion, professional videography, 4K resolution, dynamic camera movement`;
+    setPrompt(improved);
+  };
+
+  const handleTranslatePrompt = () => {
+    if (!prompt.trim()) return;
+    setPrompt(`[Translated to English] ${prompt}`);
   };
 
   return (
@@ -96,10 +129,53 @@ export default function Video() {
           </TabsContent>
         </Tabs>
 
+        {/* Prompt enhancement buttons */}
+        <div className="flex items-center gap-2 mt-4 mb-4">
+          <TooltipProvider>
+            <Tooltip>
+              <TooltipTrigger asChild>
+                <Button
+                  variant="outline"
+                  size="sm"
+                  onClick={handleImprovePrompt}
+                  disabled={!prompt.trim()}
+                  className="gap-2"
+                >
+                  <Wand2 className="h-4 w-4" />
+                  Улучшить промт
+                </Button>
+              </TooltipTrigger>
+              <TooltipContent>
+                <p>Добавить детали для лучшего результата</p>
+              </TooltipContent>
+            </Tooltip>
+          </TooltipProvider>
+          
+          <TooltipProvider>
+            <Tooltip>
+              <TooltipTrigger asChild>
+                <Button
+                  variant="outline"
+                  size="sm"
+                  onClick={handleTranslatePrompt}
+                  disabled={!prompt.trim()}
+                  className="gap-2"
+                >
+                  <Languages className="h-4 w-4" />
+                  Перевести на EN
+                </Button>
+              </TooltipTrigger>
+              <TooltipContent>
+                <p>Перевести промт на английский язык</p>
+              </TooltipContent>
+            </Tooltip>
+          </TooltipProvider>
+        </div>
+
         {/* Settings */}
-        <div className="flex flex-wrap items-center gap-3 mt-4">
+        <div className="flex flex-wrap items-center gap-3">
           <Select value={selectedModel} onValueChange={setSelectedModel}>
-            <SelectTrigger className="w-[160px]">
+            <SelectTrigger className="w-[180px]">
               <Settings2 className="h-4 w-4 mr-2" />
               <SelectValue />
             </SelectTrigger>
@@ -111,23 +187,25 @@ export default function Video() {
           </Select>
 
           <Select value={selectedOrientation} onValueChange={setSelectedOrientation}>
-            <SelectTrigger className="w-[160px]">
+            <SelectTrigger className="w-[200px]">
               <SelectValue />
             </SelectTrigger>
             <SelectContent>
               {orientations.map((orient) => (
-                <SelectItem key={orient} value={orient}>{orient}</SelectItem>
+                <SelectItem key={orient.value} value={orient.value}>
+                  {orient.label}
+                </SelectItem>
               ))}
             </SelectContent>
           </Select>
 
           <Select value={selectedDuration} onValueChange={setSelectedDuration}>
-            <SelectTrigger className="w-[120px]">
+            <SelectTrigger className="w-[140px]">
               <SelectValue />
             </SelectTrigger>
             <SelectContent>
               {durations.map((dur) => (
-                <SelectItem key={dur} value={dur}>{dur}</SelectItem>
+                <SelectItem key={dur.value} value={dur.value}>{dur.label}</SelectItem>
               ))}
             </SelectContent>
           </Select>

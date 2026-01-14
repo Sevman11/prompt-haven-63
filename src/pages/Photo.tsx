@@ -1,11 +1,12 @@
 import { useState } from "react";
 import { 
   Image, 
-  Send, 
   Settings2,
   Sparkles,
   Download,
-  Heart
+  Heart,
+  Wand2,
+  Languages
 } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Textarea } from "@/components/ui/textarea";
@@ -17,11 +18,46 @@ import {
   SelectTrigger,
   SelectValue,
 } from "@/components/ui/select";
+import {
+  Tooltip,
+  TooltipContent,
+  TooltipProvider,
+  TooltipTrigger,
+} from "@/components/ui/tooltip";
 import { cn } from "@/lib/utils";
 
-const models = ["Midjourney", "DALL-E 3", "Stable Diffusion", "Kandinsky"];
-const resolutions = ["512x512", "768x768", "1024x1024", "1024x1792", "1792x1024"];
-const orientations = ["Квадрат", "Портрет", "Альбом"];
+const models = ["Midjourney", "DALL-E 3", "Stable Diffusion XL", "Kandinsky 3", "Flux", "Leonardo AI"];
+
+const resolutions = [
+  // Квадратные
+  { value: "512x512", label: "512×512", category: "Квадрат" },
+  { value: "768x768", label: "768×768", category: "Квадрат" },
+  { value: "1024x1024", label: "1024×1024", category: "Квадрат" },
+  // Соц сети - Instagram
+  { value: "1080x1080", label: "1080×1080 (Instagram пост)", category: "Соц сети" },
+  { value: "1080x1350", label: "1080×1350 (Instagram портрет)", category: "Соц сети" },
+  { value: "1080x1920", label: "1080×1920 (Stories/Reels)", category: "Соц сети" },
+  // Соц сети - другие
+  { value: "1200x630", label: "1200×630 (Facebook/LinkedIn)", category: "Соц сети" },
+  { value: "1500x500", label: "1500×500 (Twitter шапка)", category: "Соц сети" },
+  { value: "1280x720", label: "1280×720 (YouTube превью)", category: "Соц сети" },
+  // Широкоформатные
+  { value: "1920x1080", label: "1920×1080 (Full HD)", category: "Широкий" },
+  { value: "2560x1440", label: "2560×1440 (2K)", category: "Широкий" },
+  { value: "1792x1024", label: "1792×1024 (Альбом)", category: "Широкий" },
+  // Портретные
+  { value: "1024x1792", label: "1024×1792 (Портрет)", category: "Портрет" },
+  { value: "768x1024", label: "768×1024 (Портрет)", category: "Портрет" },
+  // Печать
+  { value: "2480x3508", label: "A4 (300dpi)", category: "Печать" },
+  { value: "3508x4961", label: "A3 (300dpi)", category: "Печать" },
+];
+
+const orientations = [
+  { value: "square", label: "Квадрат", icon: "□" },
+  { value: "portrait", label: "Портрет", icon: "▯" },
+  { value: "landscape", label: "Альбом", icon: "▭" },
+];
 
 const exampleImages = [
   { id: "1", title: "Закат в горах", description: "Пейзаж с горами на закате", url: "/placeholder.svg" },
@@ -41,8 +77,8 @@ export default function Photo() {
   const [prompt, setPrompt] = useState("");
   const [activeTab, setActiveTab] = useState("text-to-image");
   const [selectedModel, setSelectedModel] = useState(models[0]);
-  const [selectedResolution, setSelectedResolution] = useState(resolutions[2]);
-  const [selectedOrientation, setSelectedOrientation] = useState(orientations[0]);
+  const [selectedResolution, setSelectedResolution] = useState(resolutions[2].value);
+  const [selectedOrientation, setSelectedOrientation] = useState(orientations[0].value);
   const [galleryTab, setGalleryTab] = useState("examples");
 
   const handleSubmit = () => {
@@ -50,7 +86,23 @@ export default function Photo() {
     console.log("Generate:", { prompt, model: selectedModel, resolution: selectedResolution });
   };
 
-  const currentImages = galleryTab === "examples" ? exampleImages : myGenerations;
+  const handleImprovePrompt = () => {
+    if (!prompt.trim()) return;
+    const improved = `${prompt}, highly detailed, professional photography, 8k resolution, cinematic lighting, masterpiece`;
+    setPrompt(improved);
+  };
+
+  const handleTranslatePrompt = () => {
+    if (!prompt.trim()) return;
+    // Simulate translation
+    setPrompt(`[Translated to English] ${prompt}`);
+  };
+
+  const groupedResolutions = resolutions.reduce((acc, res) => {
+    if (!acc[res.category]) acc[res.category] = [];
+    acc[res.category].push(res);
+    return acc;
+  }, {} as Record<string, typeof resolutions>);
 
   return (
     <div className="flex flex-col h-[calc(100vh-4rem)]">
@@ -98,10 +150,53 @@ export default function Photo() {
           </TabsContent>
         </Tabs>
 
+        {/* Prompt enhancement buttons */}
+        <div className="flex items-center gap-2 mt-4 mb-4">
+          <TooltipProvider>
+            <Tooltip>
+              <TooltipTrigger asChild>
+                <Button
+                  variant="outline"
+                  size="sm"
+                  onClick={handleImprovePrompt}
+                  disabled={!prompt.trim()}
+                  className="gap-2"
+                >
+                  <Wand2 className="h-4 w-4" />
+                  Улучшить промт
+                </Button>
+              </TooltipTrigger>
+              <TooltipContent>
+                <p>Добавить детали для лучшего результата</p>
+              </TooltipContent>
+            </Tooltip>
+          </TooltipProvider>
+          
+          <TooltipProvider>
+            <Tooltip>
+              <TooltipTrigger asChild>
+                <Button
+                  variant="outline"
+                  size="sm"
+                  onClick={handleTranslatePrompt}
+                  disabled={!prompt.trim()}
+                  className="gap-2"
+                >
+                  <Languages className="h-4 w-4" />
+                  Перевести на EN
+                </Button>
+              </TooltipTrigger>
+              <TooltipContent>
+                <p>Перевести промт на английский язык</p>
+              </TooltipContent>
+            </Tooltip>
+          </TooltipProvider>
+        </div>
+
         {/* Settings */}
-        <div className="flex flex-wrap items-center gap-3 mt-4">
+        <div className="flex flex-wrap items-center gap-3">
           <Select value={selectedModel} onValueChange={setSelectedModel}>
-            <SelectTrigger className="w-[160px]">
+            <SelectTrigger className="w-[180px]">
               <Settings2 className="h-4 w-4 mr-2" />
               <SelectValue />
             </SelectTrigger>
@@ -113,23 +208,31 @@ export default function Photo() {
           </Select>
 
           <Select value={selectedResolution} onValueChange={setSelectedResolution}>
-            <SelectTrigger className="w-[140px]">
+            <SelectTrigger className="w-[220px]">
               <SelectValue />
             </SelectTrigger>
             <SelectContent>
-              {resolutions.map((res) => (
-                <SelectItem key={res} value={res}>{res}</SelectItem>
+              {Object.entries(groupedResolutions).map(([category, items]) => (
+                <div key={category}>
+                  <div className="px-2 py-1.5 text-xs font-semibold text-muted-foreground">{category}</div>
+                  {items.map((res) => (
+                    <SelectItem key={res.value} value={res.value}>{res.label}</SelectItem>
+                  ))}
+                </div>
               ))}
             </SelectContent>
           </Select>
 
           <Select value={selectedOrientation} onValueChange={setSelectedOrientation}>
-            <SelectTrigger className="w-[130px]">
+            <SelectTrigger className="w-[140px]">
               <SelectValue />
             </SelectTrigger>
             <SelectContent>
               {orientations.map((orient) => (
-                <SelectItem key={orient} value={orient}>{orient}</SelectItem>
+                <SelectItem key={orient.value} value={orient.value}>
+                  <span className="mr-2">{orient.icon}</span>
+                  {orient.label}
+                </SelectItem>
               ))}
             </SelectContent>
           </Select>
