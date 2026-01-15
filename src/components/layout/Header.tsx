@@ -1,5 +1,6 @@
 import { Bell, Sparkles, Menu, Gem, LogOut } from "lucide-react";
 import { Button } from "@/components/ui/button";
+import { TopUpBalanceDialog } from "@/components/TopUpBalanceDialog";
 
 interface HeaderProps {
   onMenuToggle?: () => void;
@@ -52,9 +53,13 @@ export function Header({ onMenuToggle }: HeaderProps) {
         {/* Right section */}
         <div className="flex items-center gap-1 sm:gap-2">
           {/* Top up balance button */}
-          <Button variant="gradient" size="sm" className="gap-2 hidden sm:flex">
-            Пополнить баланс
-          </Button>
+          <TopUpBalanceDialog
+            trigger={
+              <Button variant="gradient" size="sm" className="gap-2 hidden sm:flex">
+                Пополнить баланс
+              </Button>
+            }
+          />
           
           {/* Balance display */}
           <div className="flex items-center gap-1.5 px-3 py-1.5 rounded-lg bg-secondary/50 border border-border">

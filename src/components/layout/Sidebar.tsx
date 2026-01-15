@@ -19,6 +19,9 @@ import {
   Filter,
   ShieldCheck,
   Rocket,
+  Rss,
+  FileCheck,
+  FileEdit,
 } from "lucide-react";
 import { cn } from "@/lib/utils";
 import { Button } from "@/components/ui/button";
@@ -40,8 +43,10 @@ const mainNavItems = [
 ];
 
 const contentFactoryItems = [
+  { icon: Rss, label: "Источники", path: "/content-factory/sources" },
   { icon: Filter, label: "Сбор и фильтрация", path: "/content-factory/collection" },
-  { icon: ShieldCheck, label: "Проверка и базовый пост", path: "/content-factory/verification" },
+  { icon: ShieldCheck, label: "Проверка", path: "/content-factory/check" },
+  { icon: FileEdit, label: "Базовый пост", path: "/content-factory/base-post" },
   { icon: Rocket, label: "Публикации", path: "/content-factory/publications" },
 ];
 

@@ -83,6 +83,11 @@ export default function Video() {
     setPrompt(`[Translated to English] ${prompt}`);
   };
 
+  const handleTranslateBack = () => {
+    if (!prompt.trim()) return;
+    setPrompt(`[Переведено на русский] ${prompt.replace('[Translated to English] ', '')}`);
+  };
+
   return (
     <div className="flex flex-col h-[calc(100vh-4rem)]">
       {/* Header */}
@@ -167,6 +172,26 @@ export default function Video() {
               </TooltipTrigger>
               <TooltipContent>
                 <p>Перевести промт на английский язык</p>
+              </TooltipContent>
+            </Tooltip>
+          </TooltipProvider>
+
+          <TooltipProvider>
+            <Tooltip>
+              <TooltipTrigger asChild>
+                <Button
+                  variant="outline"
+                  size="sm"
+                  onClick={handleTranslateBack}
+                  disabled={!prompt.trim()}
+                  className="gap-2"
+                >
+                  <Languages className="h-4 w-4" />
+                  Вернуть на RU
+                </Button>
+              </TooltipTrigger>
+              <TooltipContent>
+                <p>Перевести промт обратно на русский</p>
               </TooltipContent>
             </Tooltip>
           </TooltipProvider>
