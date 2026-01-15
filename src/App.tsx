@@ -16,9 +16,13 @@ import Training from "./pages/Training";
 import Subscription from "./pages/Subscription";
 import Profile from "./pages/Profile";
 import Support from "./pages/Support";
+import ContentFactorySources from "./pages/ContentFactorySources";
 import ContentFactoryCollection from "./pages/ContentFactoryCollection";
+import ContentFactoryCheck from "./pages/ContentFactoryCheck";
+import ContentFactoryBasePost from "./pages/ContentFactoryBasePost";
 import ContentFactoryVerification from "./pages/ContentFactoryVerification";
 import ContentFactoryPublications from "./pages/ContentFactoryPublications";
+import ContentFactoryPublicationsList from "./pages/ContentFactoryPublicationsList";
 import NotFound from "./pages/NotFound";
 
 const queryClient = new QueryClient();
@@ -43,9 +47,13 @@ const App = () => (
             <Route path="/subscription" element={<Subscription />} />
             <Route path="/profile" element={<Profile />} />
             <Route path="/support" element={<Support />} />
+            <Route path="/content-factory/sources" element={<ContentFactorySources />} />
             <Route path="/content-factory/collection" element={<ContentFactoryCollection />} />
+            <Route path="/content-factory/check" element={<ContentFactoryCheck />} />
+            <Route path="/content-factory/base-post" element={<ContentFactoryBasePost />} />
             <Route path="/content-factory/verification" element={<ContentFactoryVerification />} />
-            <Route path="/content-factory/publications" element={<ContentFactoryPublications />} />
+            <Route path="/content-factory/publications" element={<ContentFactoryPublicationsList />} />
+            <Route path="/content-factory/publications/edit" element={<ContentFactoryPublications />} />
             <Route path="*" element={<NotFound />} />
           </Routes>
         </DashboardLayout>

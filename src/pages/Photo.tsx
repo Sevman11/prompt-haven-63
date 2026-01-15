@@ -98,6 +98,12 @@ export default function Photo() {
     setPrompt(`[Translated to English] ${prompt}`);
   };
 
+  const handleTranslateBack = () => {
+    if (!prompt.trim()) return;
+    // Simulate translation back to Russian
+    setPrompt(`[Переведено на русский] ${prompt.replace('[Translated to English] ', '')}`);
+  };
+
   const groupedResolutions = resolutions.reduce((acc, res) => {
     if (!acc[res.category]) acc[res.category] = [];
     acc[res.category].push(res);
@@ -188,6 +194,26 @@ export default function Photo() {
               </TooltipTrigger>
               <TooltipContent>
                 <p>Перевести промт на английский язык</p>
+              </TooltipContent>
+            </Tooltip>
+          </TooltipProvider>
+
+          <TooltipProvider>
+            <Tooltip>
+              <TooltipTrigger asChild>
+                <Button
+                  variant="outline"
+                  size="sm"
+                  onClick={handleTranslateBack}
+                  disabled={!prompt.trim()}
+                  className="gap-2"
+                >
+                  <Languages className="h-4 w-4" />
+                  Вернуть на RU
+                </Button>
+              </TooltipTrigger>
+              <TooltipContent>
+                <p>Перевести промт обратно на русский</p>
               </TooltipContent>
             </Tooltip>
           </TooltipProvider>

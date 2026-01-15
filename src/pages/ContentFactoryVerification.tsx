@@ -1,22 +1,16 @@
 import { useState } from "react";
 import { 
-  ShieldCheck, 
-  AlertTriangle, 
-  CheckCircle2, 
-  XCircle,
-  RefreshCw,
+  FileEdit, 
   Wand2,
   Image,
-  Send,
-  ChevronRight
+  ChevronRight,
+  ArrowLeft
 } from "lucide-react";
 import { useNavigate } from "react-router-dom";
 import { Button } from "@/components/ui/button";
 import { Textarea } from "@/components/ui/textarea";
 import { Input } from "@/components/ui/input";
-import { Badge } from "@/components/ui/badge";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
-import { Progress } from "@/components/ui/progress";
 import { Checkbox } from "@/components/ui/checkbox";
 import { Label } from "@/components/ui/label";
 import {
@@ -27,17 +21,6 @@ import {
   SelectValue,
 } from "@/components/ui/select";
 import { cn } from "@/lib/utils";
-
-interface VerificationIssue {
-  id: string;
-  type: "warning" | "error" | "info";
-  message: string;
-}
-
-const mockIssues: VerificationIssue[] = [
-  { id: "1", type: "warning", message: "Найдены неподтверждённые статистические данные" },
-  { id: "2", type: "info", message: "Рекомендуется добавить ссылку на первоисточник" },
-];
 
 const toneOptions = [
   { value: "neutral", label: "Нейтральный" },
@@ -68,9 +51,6 @@ const socialNetworks = [
 
 export default function ContentFactoryVerification() {
   const navigate = useNavigate();
-  const [credibilityScore] = useState(78);
-  const [issues] = useState<VerificationIssue[]>(mockIssues);
-  const [isVerified, setIsVerified] = useState(false);
   
   const [postTitle, setPostTitle] = useState("Новые технологии в AI: что ждёт нас в 2025");
   const [postContent, setPostContent] = useState(
@@ -90,94 +70,24 @@ export default function ContentFactoryVerification() {
     );
   };
 
-  const getCredibilityLabel = () => {
-    if (credibilityScore >= 80) return { label: "Достоверно", color: "text-green-500", bg: "bg-green-500" };
-    if (credibilityScore >= 50) return { label: "Частично", color: "text-yellow-500", bg: "bg-yellow-500" };
-    return { label: "Фейк", color: "text-red-500", bg: "bg-red-500" };
-  };
-
-  const credibility = getCredibilityLabel();
-
   return (
     <div className="p-6 lg:p-8">
       {/* Header */}
       <div className="mb-8">
         <div className="flex items-center gap-3 mb-2">
           <div className="flex h-10 w-10 items-center justify-center rounded-xl bg-primary/10">
-            <ShieldCheck className="h-5 w-5 text-primary" />
+            <FileEdit className="h-5 w-5 text-primary" />
           </div>
           <div>
-            <h1 className="text-2xl font-bold text-foreground">Проверка подлинности и базовый пост</h1>
+            <h1 className="text-2xl font-bold text-foreground">Редактирование базового поста</h1>
             <p className="text-muted-foreground">Редакционный контроль и формирование ядра контента</p>
           </div>
         </div>
       </div>
 
-      {/* Two Column Layout */}
-      <div className="grid gap-6 lg:grid-cols-2">
-        {/* Left Column - Fake Control */}
-        <div className="space-y-6">
-          <Card>
-            <CardHeader>
-              <CardTitle className="flex items-center gap-2">
-                <ShieldCheck className="h-5 w-5" />
-                Оценка достоверности
-              </CardTitle>
-            </CardHeader>
-            <CardContent className="space-y-6">
-              {/* Credibility Score */}
-              <div className="space-y-3">
-                <div className="flex items-center justify-between">
-                  <span className="text-sm text-muted-foreground">Уровень достоверности</span>
-                  <span className={cn("font-bold text-lg", credibility.color)}>{credibilityScore}%</span>
-                </div>
-                <Progress value={credibilityScore} className={cn("h-3", credibility.bg)} />
-                <Badge variant="outline" className={cn("text-sm", credibility.color)}>
-                  {credibility.label}
-                </Badge>
-              </div>
-
-              {/* Issues List */}
-              <div className="space-y-3">
-                <h4 className="font-medium text-sm">Найденные проблемы</h4>
-                {issues.map((issue) => (
-                  <div 
-                    key={issue.id}
-                    className={cn(
-                      "flex items-start gap-3 p-3 rounded-lg",
-                      issue.type === "error" && "bg-red-500/10",
-                      issue.type === "warning" && "bg-yellow-500/10",
-                      issue.type === "info" && "bg-blue-500/10"
-                    )}
-                  >
-                    {issue.type === "error" && <XCircle className="h-5 w-5 text-red-500 shrink-0" />}
-                    {issue.type === "warning" && <AlertTriangle className="h-5 w-5 text-yellow-500 shrink-0" />}
-                    {issue.type === "info" && <CheckCircle2 className="h-5 w-5 text-blue-500 shrink-0" />}
-                    <span className="text-sm">{issue.message}</span>
-                  </div>
-                ))}
-              </div>
-
-              {/* Action Buttons */}
-              <div className="flex gap-3">
-                <Button 
-                  onClick={() => setIsVerified(true)}
-                  disabled={isVerified}
-                  className="flex-1 gap-2"
-                >
-                  <CheckCircle2 className="h-4 w-4" />
-                  {isVerified ? "Подтверждено" : "Подтвердить"}
-                </Button>
-                <Button variant="outline" className="flex-1 gap-2">
-                  <RefreshCw className="h-4 w-4" />
-                  Перепроверить
-                </Button>
-              </div>
-            </CardContent>
-          </Card>
-        </div>
-
-        {/* Right Column - Base Post */}
+      {/* Single Column Layout - Base Post Only */}
+      <div className="max-w-4xl mx-auto space-y-6">
+        {/* Base Post */}
         <div className="space-y-6">
           <Card>
             <CardHeader>
