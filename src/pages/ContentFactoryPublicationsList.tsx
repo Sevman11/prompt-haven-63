@@ -22,6 +22,7 @@ import {
   TableHeader,
   TableRow,
 } from "@/components/ui/table";
+import { TableControls, ColumnDef, FilterOption } from "@/components/ui/table-controls";
 import { cn } from "@/lib/utils";
 
 interface PublicationItem {
@@ -31,6 +32,7 @@ interface PublicationItem {
   image: string | null;
   socialNetwork: string;
   socialIcon: string;
+  channel: string;
   status: "draft" | "scheduled" | "published" | "cancelled";
   publishDate: string | null;
 }
@@ -43,6 +45,7 @@ const mockItems: PublicationItem[] = [
     image: "/placeholder.svg",
     socialNetwork: "Telegram",
     socialIcon: "📱",
+    channel: "@my_tech_channel",
     status: "scheduled",
     publishDate: "2025-01-20 10:00",
   },
@@ -53,6 +56,7 @@ const mockItems: PublicationItem[] = [
     image: "/placeholder.svg",
     socialNetwork: "ВКонтакте",
     socialIcon: "💬",
+    channel: "Моя группа VK",
     status: "draft",
     publishDate: null,
   },
@@ -63,6 +67,7 @@ const mockItems: PublicationItem[] = [
     image: "/placeholder.svg",
     socialNetwork: "Instagram",
     socialIcon: "📸",
+    channel: "@my_instagram",
     status: "draft",
     publishDate: null,
   },
@@ -73,15 +78,44 @@ const mockItems: PublicationItem[] = [
     image: null,
     socialNetwork: "Shorts",
     socialIcon: "🎬",
+    channel: "My YouTube Channel",
     status: "published",
     publishDate: "2025-01-15 14:30",
   },
+];
+
+const socialNetworkOptions = [
+  { value: "all", label: "Все соцсети" },
+  { value: "telegram", label: "Telegram" },
+  { value: "vk", label: "ВКонтакте" },
+  { value: "instagram", label: "Instagram" },
+  { value: "shorts", label: "Shorts" },
+];
+
+const statusOptions = [
+  { value: "all", label: "Все статусы" },
+  { value: "draft", label: "Черновик" },
+  { value: "scheduled", label: "Запланировано" },
+  { value: "published", label: "Опубликовано" },
+  { value: "cancelled", label: "Отменено" },
 ];
 
 export default function ContentFactoryPublicationsList() {
   const navigate = useNavigate();
   const [items, setItems] = useState<PublicationItem[]>(mockItems);
   const [searchQuery, setSearchQuery] = useState("");
+  const [selectedNetwork, setSelectedNetwork] = useState("all");
+  const [selectedStatus, setSelectedStatus] = useState("all");
+  const [columns, setColumns] = useState<ColumnDef[]>([
+    { id: "title", label: "Заголовок", visible: true },
+    { id: "text", label: "Текст", visible: true },
+    { id: "image", label: "Картинка", visible: true },
+    { id: "socialNetwork", label: "Соц сеть", visible: true },
+    { id: "channel", label: "Канал", visible: true },
+    { id: "status", label: "Статус", visible: true },
+    { id: "publishDate", label: "Дата публикации", visible: true },
+    { id: "actions", label: "Действия", visible: true },
+  ]);
 
   const handleView = (id: string) => {
     navigate(`/content-factory/publications/edit?id=${id}`);
@@ -103,10 +137,14 @@ export default function ContentFactoryPublicationsList() {
     ));
   };
 
-  const filteredItems = items.filter(item =>
-    item.title.toLowerCase().includes(searchQuery.toLowerCase()) ||
-    item.text.toLowerCase().includes(searchQuery.toLowerCase())
-  );
+  const filteredItems = items.filter(item => {
+    const matchesSearch = item.title.toLowerCase().includes(searchQuery.toLowerCase()) ||
+      item.text.toLowerCase().includes(searchQuery.toLowerCase()) ||
+      item.channel.toLowerCase().includes(searchQuery.toLowerCase());
+    const matchesNetwork = selectedNetwork === "all" || item.socialNetwork.toLowerCase() === selectedNetwork;
+    const matchesStatus = selectedStatus === "all" || item.status === selectedStatus;
+    return matchesSearch && matchesNetwork && matchesStatus;
+  });
 
   const draftCount = items.filter(i => i.status === "draft").length;
   const scheduledCount = items.filter(i => i.status === "scheduled").length;
@@ -121,6 +159,26 @@ export default function ContentFactoryPublicationsList() {
       default: return null;
     }
   };
+
+  const filters: FilterOption[] = [
+    {
+      id: "network",
+      label: "Соц сеть",
+      options: socialNetworkOptions,
+      value: selectedNetwork,
+      onChange: setSelectedNetwork,
+    },
+    {
+      id: "status",
+      label: "Статус",
+      options: statusOptions,
+      value: selectedStatus,
+      onChange: setSelectedStatus,
+    },
+  ];
+
+  const isColumnVisible = (columnId: string) =>
+    columns.find(c => c.id === columnId)?.visible ?? true;
 
   return (
     <div className="p-6 lg:p-8">
@@ -165,8 +223,8 @@ export default function ContentFactoryPublicationsList() {
         </Card>
       </div>
 
-      {/* Search */}
-      <div className="mb-6">
+      {/* Search and Controls */}
+      <div className="mb-6 space-y-4">
         <div className="relative max-w-md">
           <Search className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-muted-foreground" />
           <Input
@@ -176,6 +234,12 @@ export default function ContentFactoryPublicationsList() {
             className="pl-10"
           />
         </div>
+
+        <TableControls
+          columns={columns}
+          onColumnsChange={setColumns}
+          filters={filters}
+        />
       </div>
 
       {/* Table */}
@@ -184,13 +248,14 @@ export default function ContentFactoryPublicationsList() {
           <Table>
             <TableHeader>
               <TableRow>
-                <TableHead>Заголовок</TableHead>
-                <TableHead className="hidden md:table-cell">Текст</TableHead>
-                <TableHead className="w-[80px]">Картинка</TableHead>
-                <TableHead>Соц сеть</TableHead>
-                <TableHead>Статус</TableHead>
-                <TableHead className="hidden lg:table-cell">Дата публикации</TableHead>
-                <TableHead className="w-[220px] text-right">Действия</TableHead>
+                {isColumnVisible("title") && <TableHead>Заголовок</TableHead>}
+                {isColumnVisible("text") && <TableHead className="hidden md:table-cell">Текст</TableHead>}
+                {isColumnVisible("image") && <TableHead className="w-[80px]">Картинка</TableHead>}
+                {isColumnVisible("socialNetwork") && <TableHead>Соц сеть</TableHead>}
+                {isColumnVisible("channel") && <TableHead>Канал</TableHead>}
+                {isColumnVisible("status") && <TableHead>Статус</TableHead>}
+                {isColumnVisible("publishDate") && <TableHead className="hidden lg:table-cell">Дата публикации</TableHead>}
+                {isColumnVisible("actions") && <TableHead className="w-[220px] text-right">Действия</TableHead>}
               </TableRow>
             </TableHeader>
             <TableBody>
@@ -199,58 +264,77 @@ export default function ContentFactoryPublicationsList() {
                   item.status === "published" && "bg-green-500/5",
                   item.status === "cancelled" && "bg-red-500/5 opacity-50"
                 )}>
-                  <TableCell>
-                    <p className="font-medium line-clamp-1">{item.title || "—"}</p>
-                  </TableCell>
-                  <TableCell className="hidden md:table-cell">
-                    <p className="text-sm text-muted-foreground line-clamp-2">{item.text}</p>
-                  </TableCell>
-                  <TableCell>
-                    {item.image ? (
-                      <img src={item.image} alt="" className="h-10 w-10 rounded-lg object-cover" />
-                    ) : (
-                      <div className="h-10 w-10 rounded-lg bg-muted flex items-center justify-center">
-                        <Image className="h-4 w-4 text-muted-foreground" />
-                      </div>
-                    )}
-                  </TableCell>
-                  <TableCell>
-                    <div className="flex items-center gap-2">
-                      <span className="text-lg">{item.socialIcon}</span>
-                      <span className="text-sm">{item.socialNetwork}</span>
-                    </div>
-                  </TableCell>
-                  <TableCell>{getStatusBadge(item.status)}</TableCell>
-                  <TableCell className="hidden lg:table-cell">
-                    {item.publishDate ? (
-                      <div className="flex items-center gap-1 text-sm">
-                        <Calendar className="h-3 w-3" />
-                        {item.publishDate}
-                      </div>
-                    ) : "—"}
-                  </TableCell>
-                  <TableCell>
-                    <div className="flex items-center justify-end gap-1">
-                      <Button variant="ghost" size="icon" onClick={() => handleView(item.id)} title="Просмотр">
-                        <Eye className="h-4 w-4" />
-                      </Button>
-                      <Button variant="ghost" size="icon" onClick={() => handleEdit(item.id)} title="Редактировать">
-                        <Pencil className="h-4 w-4" />
-                      </Button>
-                      {item.status === "draft" && (
-                        <>
-                          <Button variant="default" size="sm" onClick={() => handlePublish(item.id)} className="gap-1">
-                            <Send className="h-4 w-4" />
-                            Опубликовать
-                          </Button>
-                          <Button variant="outline" size="sm" onClick={() => handleCancel(item.id)} className="gap-1">
-                            <XCircle className="h-4 w-4" />
-                            Отмена
-                          </Button>
-                        </>
+                  {isColumnVisible("title") && (
+                    <TableCell>
+                      <p className="font-medium line-clamp-1">{item.title || "—"}</p>
+                    </TableCell>
+                  )}
+                  {isColumnVisible("text") && (
+                    <TableCell className="hidden md:table-cell">
+                      <p className="text-sm text-muted-foreground line-clamp-2">{item.text}</p>
+                    </TableCell>
+                  )}
+                  {isColumnVisible("image") && (
+                    <TableCell>
+                      {item.image ? (
+                        <img src={item.image} alt="" className="h-10 w-10 rounded-lg object-cover" />
+                      ) : (
+                        <div className="h-10 w-10 rounded-lg bg-muted flex items-center justify-center">
+                          <Image className="h-4 w-4 text-muted-foreground" />
+                        </div>
                       )}
-                    </div>
-                  </TableCell>
+                    </TableCell>
+                  )}
+                  {isColumnVisible("socialNetwork") && (
+                    <TableCell>
+                      <div className="flex items-center gap-2">
+                        <span className="text-lg">{item.socialIcon}</span>
+                        <span className="text-sm">{item.socialNetwork}</span>
+                      </div>
+                    </TableCell>
+                  )}
+                  {isColumnVisible("channel") && (
+                    <TableCell>
+                      <p className="text-sm text-muted-foreground">{item.channel}</p>
+                    </TableCell>
+                  )}
+                  {isColumnVisible("status") && (
+                    <TableCell>{getStatusBadge(item.status)}</TableCell>
+                  )}
+                  {isColumnVisible("publishDate") && (
+                    <TableCell className="hidden lg:table-cell">
+                      {item.publishDate ? (
+                        <div className="flex items-center gap-1 text-sm">
+                          <Calendar className="h-3 w-3" />
+                          {item.publishDate}
+                        </div>
+                      ) : "—"}
+                    </TableCell>
+                  )}
+                  {isColumnVisible("actions") && (
+                    <TableCell>
+                      <div className="flex items-center justify-end gap-1">
+                        <Button variant="ghost" size="icon" onClick={() => handleView(item.id)} title="Просмотр">
+                          <Eye className="h-4 w-4" />
+                        </Button>
+                        <Button variant="ghost" size="icon" onClick={() => handleEdit(item.id)} title="Редактировать">
+                          <Pencil className="h-4 w-4" />
+                        </Button>
+                        {item.status === "draft" && (
+                          <>
+                            <Button variant="default" size="sm" onClick={() => handlePublish(item.id)} className="gap-1">
+                              <Send className="h-4 w-4" />
+                              Опубликовать
+                            </Button>
+                            <Button variant="outline" size="sm" onClick={() => handleCancel(item.id)} className="gap-1">
+                              <XCircle className="h-4 w-4" />
+                              Отмена
+                            </Button>
+                          </>
+                        )}
+                      </div>
+                    </TableCell>
+                  )}
                 </TableRow>
               ))}
             </TableBody>

@@ -20,12 +20,14 @@ import {
   TableHeader,
   TableRow,
 } from "@/components/ui/table";
+import { TableControls, ColumnDef, FilterOption } from "@/components/ui/table-controls";
 import { cn } from "@/lib/utils";
 
 interface CheckItem {
   id: string;
   source: string;
   sourceIcon: string;
+  channelName: string;
   title: string;
   credibilityScore: number;
   description: string;
@@ -37,6 +39,7 @@ const mockItems: CheckItem[] = [
     id: "1",
     source: "Habr",
     sourceIcon: "📡",
+    channelName: "Habr - Технологии",
     title: "Новые технологии в AI: что ждёт нас в 2025",
     credibilityScore: 92,
     description: "Обзор основных трендов в развитии искусственного интеллекта на ближайший год",
@@ -46,6 +49,7 @@ const mockItems: CheckItem[] = [
     id: "2",
     source: "Telegram",
     sourceIcon: "📱",
+    channelName: "@technews_ru",
     title: "Запуск нового сервиса генерации видео",
     credibilityScore: 78,
     description: "Компания OpenAI представила новый инструмент для создания видео из текста",
@@ -55,6 +59,7 @@ const mockItems: CheckItem[] = [
     id: "3",
     source: "YouTube",
     sourceIcon: "🎬",
+    channelName: "TechReviews Channel",
     title: "Обзор GPT-5: что нового?",
     credibilityScore: 65,
     description: "Первый взгляд на возможности новой версии языковой модели",
@@ -64,6 +69,7 @@ const mockItems: CheckItem[] = [
     id: "4",
     source: "Дзен",
     sourceIcon: "📰",
+    channelName: "AI News Дзен",
     title: "Как AI меняет рынок труда",
     credibilityScore: 45,
     description: "Анализ влияния автоматизации на различные профессии",
@@ -71,10 +77,26 @@ const mockItems: CheckItem[] = [
   },
 ];
 
+const sourceOptions = [
+  { value: "all", label: "Все источники" },
+  { value: "habr", label: "Habr" },
+  { value: "telegram", label: "Telegram" },
+  { value: "youtube", label: "YouTube" },
+  { value: "dzen", label: "Дзен" },
+];
+
 export default function ContentFactoryCheck() {
   const navigate = useNavigate();
   const [items, setItems] = useState<CheckItem[]>(mockItems);
   const [searchQuery, setSearchQuery] = useState("");
+  const [selectedSource, setSelectedSource] = useState("all");
+  const [columns, setColumns] = useState<ColumnDef[]>([
+    { id: "source", label: "Источник", visible: true },
+    { id: "title", label: "Название", visible: true },
+    { id: "credibility", label: "Достоверность", visible: true },
+    { id: "description", label: "Описание", visible: true },
+    { id: "actions", label: "Действия", visible: true },
+  ]);
 
   const getCredibilityColor = (score: number) => {
     if (score >= 80) return "text-green-500";
@@ -104,13 +126,29 @@ export default function ContentFactoryCheck() {
     navigate(`/content-factory/verification?id=${id}`);
   };
 
-  const filteredItems = items.filter(item => 
-    item.title.toLowerCase().includes(searchQuery.toLowerCase()) ||
-    item.description.toLowerCase().includes(searchQuery.toLowerCase())
-  );
+  const filteredItems = items.filter(item => {
+    const matchesSearch = item.title.toLowerCase().includes(searchQuery.toLowerCase()) ||
+      item.description.toLowerCase().includes(searchQuery.toLowerCase()) ||
+      item.channelName.toLowerCase().includes(searchQuery.toLowerCase());
+    const matchesSource = selectedSource === "all" || item.source.toLowerCase() === selectedSource;
+    return matchesSearch && matchesSource;
+  });
 
   const pendingCount = items.filter(i => i.status === "pending").length;
   const approvedCount = items.filter(i => i.status === "approved").length;
+
+  const filters: FilterOption[] = [
+    {
+      id: "source",
+      label: "Источник",
+      options: sourceOptions,
+      value: selectedSource,
+      onChange: setSelectedSource,
+    },
+  ];
+
+  const isColumnVisible = (columnId: string) =>
+    columns.find(c => c.id === columnId)?.visible ?? true;
 
   return (
     <div className="p-6 lg:p-8">
@@ -149,8 +187,8 @@ export default function ContentFactoryCheck() {
         </Card>
       </div>
 
-      {/* Search */}
-      <div className="mb-6">
+      {/* Search and Controls */}
+      <div className="mb-6 space-y-4">
         <div className="relative max-w-md">
           <Search className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-muted-foreground" />
           <Input
@@ -160,6 +198,12 @@ export default function ContentFactoryCheck() {
             className="pl-10"
           />
         </div>
+
+        <TableControls
+          columns={columns}
+          onColumnsChange={setColumns}
+          filters={filters}
+        />
       </div>
 
       {/* Table */}
@@ -168,11 +212,11 @@ export default function ContentFactoryCheck() {
           <Table>
             <TableHeader>
               <TableRow>
-                <TableHead className="w-[100px]">Источник</TableHead>
-                <TableHead>Название</TableHead>
-                <TableHead className="w-[150px]">Достоверность</TableHead>
-                <TableHead className="hidden md:table-cell">Описание</TableHead>
-                <TableHead className="w-[200px] text-right">Действия</TableHead>
+                {isColumnVisible("source") && <TableHead className="w-[180px]">Источник</TableHead>}
+                {isColumnVisible("title") && <TableHead>Название</TableHead>}
+                {isColumnVisible("credibility") && <TableHead className="w-[150px]">Достоверность</TableHead>}
+                {isColumnVisible("description") && <TableHead className="hidden md:table-cell">Описание</TableHead>}
+                {isColumnVisible("actions") && <TableHead className="w-[200px] text-right">Действия</TableHead>}
               </TableRow>
             </TableHeader>
             <TableBody>
@@ -181,72 +225,85 @@ export default function ContentFactoryCheck() {
                   item.status === "approved" && "bg-green-500/5",
                   item.status === "rejected" && "bg-red-500/5 opacity-50"
                 )}>
-                  <TableCell>
-                    <div className="flex items-center gap-2">
-                      <span className="text-lg">{item.sourceIcon}</span>
-                      <span className="text-sm font-medium">{item.source}</span>
-                    </div>
-                  </TableCell>
-                  <TableCell>
-                    <p className="font-medium">{item.title}</p>
-                  </TableCell>
-                  <TableCell>
-                    <div className="space-y-1">
-                      <div className="flex items-center gap-2">
-                        <Progress 
-                          value={item.credibilityScore} 
-                          className={cn("h-2 w-16", getCredibilityBg(item.credibilityScore))}
-                        />
-                        <span className={cn("text-sm font-bold", getCredibilityColor(item.credibilityScore))}>
-                          {item.credibilityScore}%
-                        </span>
+                  {isColumnVisible("source") && (
+                    <TableCell>
+                      <div className="space-y-1">
+                        <div className="flex items-center gap-2">
+                          <span className="text-lg">{item.sourceIcon}</span>
+                          <span className="text-sm font-medium">{item.source}</span>
+                        </div>
+                        <p className="text-xs text-muted-foreground pl-7">{item.channelName}</p>
                       </div>
-                    </div>
-                  </TableCell>
-                  <TableCell className="hidden md:table-cell">
-                    <p className="text-sm text-muted-foreground line-clamp-2">{item.description}</p>
-                  </TableCell>
-                  <TableCell>
-                    <div className="flex items-center justify-end gap-2">
-                      <Button
-                        variant="ghost"
-                        size="sm"
-                        onClick={() => handleView(item.id)}
-                        className="gap-1"
-                      >
-                        <Eye className="h-4 w-4" />
-                        <span className="hidden sm:inline">Просмотр</span>
-                      </Button>
-                      {item.status === "pending" && (
-                        <>
-                          <Button
-                            variant="default"
-                            size="sm"
-                            onClick={() => handleApprove(item.id)}
-                            className="gap-1"
-                          >
-                            <CheckCircle2 className="h-4 w-4" />
-                            <span className="hidden sm:inline">В работу</span>
-                          </Button>
-                          <Button
-                            variant="outline"
-                            size="sm"
-                            onClick={() => handleReject(item.id)}
-                            className="gap-1"
-                          >
-                            <XCircle className="h-4 w-4" />
-                            <span className="hidden sm:inline">Отклонить</span>
-                          </Button>
-                        </>
-                      )}
-                      {item.status === "approved" && (
-                        <Badge className="bg-green-500">Одобрено</Badge>
-                      )}
-                      {item.status === "rejected" && (
-                        <Badge variant="destructive">Отклонено</Badge>
-                      )}
-                    </div>
-                  </TableCell>
+                    </TableCell>
+                  )}
+                  {isColumnVisible("title") && (
+                    <TableCell>
+                      <p className="font-medium">{item.title}</p>
+                    </TableCell>
+                  )}
+                  {isColumnVisible("credibility") && (
+                    <TableCell>
+                      <div className="space-y-1">
+                        <div className="flex items-center gap-2">
+                          <Progress 
+                            value={item.credibilityScore} 
+                            className={cn("h-2 w-16", getCredibilityBg(item.credibilityScore))}
+                          />
+                          <span className={cn("text-sm font-bold", getCredibilityColor(item.credibilityScore))}>
+                            {item.credibilityScore}%
+                          </span>
+                        </div>
+                      </div>
+                    </TableCell>
+                  )}
+                  {isColumnVisible("description") && (
+                    <TableCell className="hidden md:table-cell">
+                      <p className="text-sm text-muted-foreground line-clamp-2">{item.description}</p>
+                    </TableCell>
+                  )}
+                  {isColumnVisible("actions") && (
+                    <TableCell>
+                      <div className="flex items-center justify-end gap-2">
+                        <Button
+                          variant="ghost"
+                          size="sm"
+                          onClick={() => handleView(item.id)}
+                          className="gap-1"
+                        >
+                          <Eye className="h-4 w-4" />
+                          <span className="hidden sm:inline">Просмотр</span>
+                        </Button>
+                        {item.status === "pending" && (
+                          <>
+                            <Button
+                              variant="default"
+                              size="sm"
+                              onClick={() => handleApprove(item.id)}
+                              className="gap-1"
+                            >
+                              <CheckCircle2 className="h-4 w-4" />
+                              <span className="hidden sm:inline">В работу</span>
+                            </Button>
+                            <Button
+                              variant="outline"
+                              size="sm"
+                              onClick={() => handleReject(item.id)}
+                              className="gap-1"
+                            >
+                              <XCircle className="h-4 w-4" />
+                              <span className="hidden sm:inline">Отклонить</span>
+                            </Button>
+                          </>
+                        )}
+                        {item.status === "approved" && (
+                          <Badge className="bg-green-500">Одобрено</Badge>
+                        )}
+                        {item.status === "rejected" && (
+                          <Badge variant="destructive">Отклонено</Badge>
+                        )}
+                      </div>
+                    </TableCell>
+                  )}
                 </TableRow>
               ))}
             </TableBody>
