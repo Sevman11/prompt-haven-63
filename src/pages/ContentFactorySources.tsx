@@ -6,7 +6,8 @@ import {
   Check, 
   Settings, 
   RefreshCw,
-  ExternalLink
+  ExternalLink,
+  Link2
 } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
@@ -61,6 +62,8 @@ const mockSources: Source[] = [
 export default function ContentFactorySources() {
   const [sources, setSources] = useState<Source[]>(mockSources);
   const [isAddDialogOpen, setIsAddDialogOpen] = useState(false);
+  const [isSelectDialogOpen, setIsSelectDialogOpen] = useState(false);
+  const [selectedSourceType, setSelectedSourceType] = useState<string | null>(null);
   const [newSourceType, setNewSourceType] = useState("");
   const [newSourceName, setNewSourceName] = useState("");
   const [newSourceUrl, setNewSourceUrl] = useState("");
@@ -99,8 +102,26 @@ export default function ContentFactorySources() {
     return sourceTypes.find(t => t.id === type)?.icon || "📋";
   };
 
+  const handleSourceTypeClick = (typeId: string) => {
+    setSelectedSourceType(typeId);
+    setIsSelectDialogOpen(true);
+  };
+
+  const handleSelectExistingSource = (sourceId: string) => {
+    // Toggle selection or activate the source
+    setSources(prev => prev.map(s =>
+      s.id === sourceId ? { ...s, isActive: true } : s
+    ));
+    setIsSelectDialogOpen(false);
+    setSelectedSourceType(null);
+  };
+
   const activeCount = sources.filter(s => s.isActive).length;
   const totalItems = sources.reduce((acc, s) => acc + s.itemsCount, 0);
+
+  const filteredSourcesForSelect = selectedSourceType 
+    ? sources.filter(s => s.type === selectedSourceType)
+    : [];
 
   return (
     <div className="p-6 lg:p-8">
@@ -117,16 +138,17 @@ export default function ContentFactorySources() {
             </div>
           </div>
           
+          {/* Connect Source Button - Opens Add Dialog */}
           <Dialog open={isAddDialogOpen} onOpenChange={setIsAddDialogOpen}>
             <DialogTrigger asChild>
               <Button className="gap-2">
-                <Plus className="h-4 w-4" />
-                Добавить источник
+                <Link2 className="h-4 w-4" />
+                Подключить источник
               </Button>
             </DialogTrigger>
             <DialogContent className="sm:max-w-[500px]">
               <DialogHeader>
-                <DialogTitle>Добавить новый источник</DialogTitle>
+                <DialogTitle>Подключить новый источник</DialogTitle>
                 <DialogDescription>
                   Выберите тип источника и укажите данные для подключения
                 </DialogDescription>
@@ -202,32 +224,102 @@ export default function ContentFactorySources() {
         </Card>
       </div>
 
-      {/* Source Types */}
+      {/* Source Types - Click to select from existing */}
       <div className="mb-8">
-        <h2 className="text-lg font-semibold mb-4">Доступные типы источников</h2>
+        <h2 className="text-lg font-semibold mb-4">Выберите тип источника</h2>
         <div className="grid gap-3 md:grid-cols-2 lg:grid-cols-4">
-          {sourceTypes.map((type) => (
-            <Card 
-              key={type.id}
-              className="cursor-pointer hover:border-primary/50 transition-colors"
+          {sourceTypes.map((type) => {
+            const count = sources.filter(s => s.type === type.id).length;
+            return (
+              <Card 
+                key={type.id}
+                className="cursor-pointer hover:border-primary/50 transition-colors"
+                onClick={() => handleSourceTypeClick(type.id)}
+              >
+                <CardContent className="pt-4 pb-4">
+                  <div className="flex items-center gap-3">
+                    <span className="text-2xl">{type.icon}</span>
+                    <div className="flex-1">
+                      <p className="font-medium text-sm">{type.label}</p>
+                      <p className="text-xs text-muted-foreground">{type.description}</p>
+                    </div>
+                    {count > 0 && (
+                      <Badge variant="secondary" className="text-xs">
+                        {count}
+                      </Badge>
+                    )}
+                  </div>
+                </CardContent>
+              </Card>
+            );
+          })}
+        </div>
+      </div>
+
+      {/* Select Source Dialog */}
+      <Dialog open={isSelectDialogOpen} onOpenChange={setIsSelectDialogOpen}>
+        <DialogContent className="sm:max-w-[500px]">
+          <DialogHeader>
+            <DialogTitle>
+              Выберите источник: {sourceTypes.find(t => t.id === selectedSourceType)?.label}
+            </DialogTitle>
+            <DialogDescription>
+              Выберите из уже настроенных источников или добавьте новый
+            </DialogDescription>
+          </DialogHeader>
+          
+          <div className="space-y-4 py-4">
+            {filteredSourcesForSelect.length > 0 ? (
+              <div className="space-y-2">
+                {filteredSourcesForSelect.map((source) => (
+                  <Card 
+                    key={source.id}
+                    className={cn(
+                      "cursor-pointer transition-all",
+                      source.isActive 
+                        ? "border-primary bg-primary/5" 
+                        : "hover:border-primary/50"
+                    )}
+                    onClick={() => handleSelectExistingSource(source.id)}
+                  >
+                    <CardContent className="py-3 px-4">
+                      <div className="flex items-center justify-between">
+                        <div>
+                          <p className="font-medium">{source.name}</p>
+                          <p className="text-xs text-muted-foreground">{source.url}</p>
+                          <p className="text-xs text-muted-foreground mt-1">
+                            {source.itemsCount} материалов • Обновлено: {source.lastSync}
+                          </p>
+                        </div>
+                        {source.isActive && (
+                          <Badge className="bg-green-500">Активен</Badge>
+                        )}
+                      </div>
+                    </CardContent>
+                  </Card>
+                ))}
+              </div>
+            ) : (
+              <div className="text-center py-8 text-muted-foreground">
+                <p>Нет настроенных источников этого типа</p>
+              </div>
+            )}
+            
+            <Button 
+              variant="outline" 
+              className="w-full gap-2"
               onClick={() => {
-                setNewSourceType(type.id);
+                setIsSelectDialogOpen(false);
+                setNewSourceType(selectedSourceType || "");
                 setIsAddDialogOpen(true);
               }}
             >
-              <CardContent className="pt-4 pb-4">
-                <div className="flex items-center gap-3">
-                  <span className="text-2xl">{type.icon}</span>
-                  <div>
-                    <p className="font-medium text-sm">{type.label}</p>
-                    <p className="text-xs text-muted-foreground">{type.description}</p>
-                  </div>
-                </div>
-              </CardContent>
-            </Card>
-          ))}
-        </div>
-      </div>
+              <Plus className="h-4 w-4" />
+              Добавить новый источник
+            </Button>
+          </div>
+        </DialogContent>
+      </Dialog>
 
       {/* Connected Sources */}
       <div>
@@ -294,8 +386,8 @@ export default function ContentFactorySources() {
                   Добавьте источники для автоматического сбора контента
                 </p>
                 <Button onClick={() => setIsAddDialogOpen(true)} className="gap-2">
-                  <Plus className="h-4 w-4" />
-                  Добавить первый источник
+                  <Link2 className="h-4 w-4" />
+                  Подключить первый источник
                 </Button>
               </CardContent>
             </Card>

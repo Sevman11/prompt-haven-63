@@ -44,7 +44,7 @@ export default function Generations() {
   );
 
   return (
-    <div className="flex flex-col h-[calc(100vh-4rem)]">
+    <div className="flex flex-col min-h-[calc(100vh-4rem)] overflow-y-auto">
       {/* Header */}
       <div className="p-6 border-b border-border">
         <h1 className="text-2xl font-bold text-foreground mb-2">Мои генерации</h1>
@@ -96,7 +96,7 @@ export default function Generations() {
       </div>
 
       {/* Grid */}
-      <div className="flex-1 overflow-y-auto p-6">
+      <div className="flex-1 p-6">
         <div className="grid gap-4 grid-cols-2 lg:grid-cols-3 xl:grid-cols-4">
           {filteredGenerations.map((gen, index) => (
             <div

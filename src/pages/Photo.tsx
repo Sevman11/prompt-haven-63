@@ -111,7 +111,7 @@ export default function Photo() {
   }, {} as Record<string, typeof resolutions>);
 
   return (
-    <div className="flex flex-col h-[calc(100vh-4rem)]">
+    <div className="flex flex-col min-h-[calc(100vh-4rem)] overflow-y-auto">
       {/* Header */}
       <div className="p-6 border-b border-border">
         <h1 className="text-2xl font-bold text-foreground mb-2">Генерация фото</h1>
@@ -276,7 +276,7 @@ export default function Photo() {
       </div>
 
       {/* Gallery with Tabs */}
-      <div className="flex-1 overflow-y-auto p-6">
+      <div className="flex-1 p-6">
         <Tabs value={galleryTab} onValueChange={setGalleryTab} className="w-full">
           <TabsList className="mb-4">
             <TabsTrigger value="examples">Примеры генераций</TabsTrigger>

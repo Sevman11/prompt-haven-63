@@ -161,6 +161,8 @@ export default function PromptCatalog() {
           >
             <PromptCard
               {...prompt}
+              type={(prompt as any).type || "text"}
+              previewImage={(prompt as any).previewImage}
               isLiked={savedPrompts.has(prompt.id)}
               onClick={() => navigate(`/prompt/${prompt.id}`)}
               onLike={() => toggleSave(prompt.id)}
