@@ -30,7 +30,15 @@ import {
   SelectTrigger,
   SelectValue,
 } from "@/components/ui/select";
+import {
+  Tooltip,
+  TooltipContent,
+  TooltipProvider,
+  TooltipTrigger,
+} from "@/components/ui/tooltip";
 import { cn } from "@/lib/utils";
+
+type HealthStatus = "active" | "error" | "syncing";
 
 interface Source {
   id: string;
@@ -40,6 +48,7 @@ interface Source {
   isActive: boolean;
   lastSync: string;
   itemsCount: number;
+  healthStatus: HealthStatus;
 }
 
 const sourceTypes = [
@@ -53,11 +62,27 @@ const sourceTypes = [
 ];
 
 const mockSources: Source[] = [
-  { id: "1", type: "rss", name: "Habr - Новости", url: "https://habr.com/ru/rss/", isActive: true, lastSync: "10 мин назад", itemsCount: 156 },
-  { id: "2", type: "telegram", name: "@technews_ru", url: "https://t.me/technews_ru", isActive: true, lastSync: "5 мин назад", itemsCount: 89 },
-  { id: "3", type: "youtube", name: "TechReviews", url: "https://youtube.com/@techreviews", isActive: false, lastSync: "2 часа назад", itemsCount: 45 },
-  { id: "4", type: "dzen", name: "AI News Дзен", url: "https://dzen.ru/ainews", isActive: true, lastSync: "30 мин назад", itemsCount: 234 },
+  { id: "1", type: "rss", name: "Habr - Новости", url: "https://habr.com/ru/rss/", isActive: true, lastSync: "10 мин назад", itemsCount: 156, healthStatus: "active" },
+  { id: "2", type: "telegram", name: "@technews_ru", url: "https://t.me/technews_ru", isActive: true, lastSync: "5 мин назад", itemsCount: 89, healthStatus: "syncing" },
+  { id: "3", type: "youtube", name: "TechReviews", url: "https://youtube.com/@techreviews", isActive: false, lastSync: "2 часа назад", itemsCount: 45, healthStatus: "error" },
+  { id: "4", type: "dzen", name: "AI News Дзен", url: "https://dzen.ru/ainews", isActive: true, lastSync: "30 мин назад", itemsCount: 234, healthStatus: "active" },
 ];
+
+const getHealthStatusColor = (status: HealthStatus) => {
+  switch (status) {
+    case "active": return "bg-green-500";
+    case "error": return "bg-red-500";
+    case "syncing": return "bg-yellow-500";
+  }
+};
+
+const getHealthStatusLabel = (status: HealthStatus) => {
+  switch (status) {
+    case "active": return "Активен";
+    case "error": return "Ошибка";
+    case "syncing": return "Синхронизация";
+  }
+};
 
 export default function ContentFactorySources() {
   const [sources, setSources] = useState<Source[]>(mockSources);
@@ -89,6 +114,7 @@ export default function ContentFactorySources() {
       isActive: true,
       lastSync: "Сейчас",
       itemsCount: 0,
+      healthStatus: "syncing",
     };
     
     setSources(prev => [...prev, newSource]);
@@ -124,6 +150,7 @@ export default function ContentFactorySources() {
     : [];
 
   return (
+    <TooltipProvider>
     <div className="p-6 lg:p-8">
       {/* Header */}
       <div className="mb-8">
@@ -329,11 +356,23 @@ export default function ContentFactorySources() {
             <Card key={source.id} className={cn(!source.isActive && "opacity-60")}>
               <CardContent className="py-4">
                 <div className="flex items-center justify-between">
-                  <div className="flex items-center gap-4">
+                    <div className="flex items-center gap-4">
                     <span className="text-2xl">{getSourceIcon(source.type)}</span>
                     <div>
                       <div className="flex items-center gap-2">
                         <p className="font-medium">{source.name}</p>
+                        {/* Health Status Indicator */}
+                        <Tooltip>
+                          <TooltipTrigger>
+                            <span className={cn(
+                              "inline-block h-2.5 w-2.5 rounded-full",
+                              getHealthStatusColor(source.healthStatus)
+                            )} />
+                          </TooltipTrigger>
+                          <TooltipContent>
+                            <p>{getHealthStatusLabel(source.healthStatus)}</p>
+                          </TooltipContent>
+                        </Tooltip>
                         <Badge variant="outline" className="text-xs">
                           {sourceTypes.find(t => t.id === source.type)?.label}
                         </Badge>
@@ -395,5 +434,6 @@ export default function ContentFactorySources() {
         </div>
       </div>
     </div>
+    </TooltipProvider>
   );
 }

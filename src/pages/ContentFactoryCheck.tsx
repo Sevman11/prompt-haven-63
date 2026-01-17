@@ -20,6 +20,12 @@ import {
   TableHeader,
   TableRow,
 } from "@/components/ui/table";
+import {
+  Tooltip,
+  TooltipContent,
+  TooltipProvider,
+  TooltipTrigger,
+} from "@/components/ui/tooltip";
 import { TableControls, ColumnDef, FilterOption } from "@/components/ui/table-controls";
 import { cn } from "@/lib/utils";
 
@@ -151,6 +157,7 @@ export default function ContentFactoryCheck() {
     columns.find(c => c.id === columnId)?.visible ?? true;
 
   return (
+    <TooltipProvider>
     <div className="p-6 lg:p-8">
       {/* Header */}
       <div className="mb-8">
@@ -247,11 +254,19 @@ export default function ContentFactoryCheck() {
                         <div className="flex items-center gap-2">
                           <Progress 
                             value={item.credibilityScore} 
-                            className={cn("h-2 w-16", getCredibilityBg(item.credibilityScore))}
+                            className="h-2 w-16"
+                            indicatorClassName={getCredibilityBg(item.credibilityScore)}
                           />
-                          <span className={cn("text-sm font-bold", getCredibilityColor(item.credibilityScore))}>
-                            {item.credibilityScore}%
-                          </span>
+                          <Tooltip>
+                            <TooltipTrigger asChild>
+                              <span className={cn("text-sm font-bold cursor-help", getCredibilityColor(item.credibilityScore))}>
+                                {item.credibilityScore}%
+                              </span>
+                            </TooltipTrigger>
+                            <TooltipContent className="max-w-xs">
+                              <p>Рассчитано на основе 3 авторитетных источников и алгоритмов проверки фактов.</p>
+                            </TooltipContent>
+                          </Tooltip>
                         </div>
                       </div>
                     </TableCell>
@@ -311,5 +326,6 @@ export default function ContentFactoryCheck() {
         </CardContent>
       </Card>
     </div>
+    </TooltipProvider>
   );
 }
