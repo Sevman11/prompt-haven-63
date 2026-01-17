@@ -8,7 +8,10 @@ import {
   Heart,
   Play,
   Wand2,
-  Languages
+  Languages,
+  Bell,
+  Eye,
+  AlertTriangle
 } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Textarea } from "@/components/ui/textarea";
@@ -26,6 +29,8 @@ import {
   TooltipProvider,
   TooltipTrigger,
 } from "@/components/ui/tooltip";
+import { Checkbox } from "@/components/ui/checkbox";
+import { Alert, AlertDescription } from "@/components/ui/alert";
 import { cn } from "@/lib/utils";
 
 const models = ["Sora", "Runway Gen-3", "Pika Labs", "Stable Video", "Kling AI", "Luma Dream Machine"];
@@ -66,10 +71,17 @@ export default function Video() {
   const [selectedOrientation, setSelectedOrientation] = useState(orientations[0].value);
   const [selectedDuration, setSelectedDuration] = useState(durations[0].value);
   const [galleryTab, setGalleryTab] = useState("examples");
+  const [notifyWhenReady, setNotifyWhenReady] = useState(false);
+  const userPlan = "Free"; // Mock user plan
 
   const handleSubmit = () => {
     if (!prompt.trim()) return;
-    console.log("Generate:", { prompt, model: selectedModel, orientation: selectedOrientation, duration: selectedDuration });
+    console.log("Generate:", { prompt, model: selectedModel, orientation: selectedOrientation, duration: selectedDuration, notifyWhenReady });
+  };
+
+  const handleGeneratePreview = () => {
+    if (!prompt.trim()) return;
+    console.log("Generate Preview (1 frame):", { prompt, model: selectedModel });
   };
 
   const handleImprovePrompt = () => {
@@ -197,6 +209,34 @@ export default function Video() {
           </TooltipProvider>
         </div>
 
+        {/* Notify checkbox and watermark warning */}
+        <div className="flex flex-wrap items-center gap-4 mt-4 mb-4">
+          <div className="flex items-center space-x-2">
+            <Checkbox 
+              id="notify" 
+              checked={notifyWhenReady} 
+              onCheckedChange={(checked) => setNotifyWhenReady(checked as boolean)}
+            />
+            <label
+              htmlFor="notify"
+              className="text-sm font-medium leading-none peer-disabled:cursor-not-allowed peer-disabled:opacity-70 flex items-center gap-2"
+            >
+              <Bell className="h-4 w-4 text-muted-foreground" />
+              Уведомить, когда готово
+            </label>
+          </div>
+        </div>
+
+        {/* Watermark warning for Free users */}
+        {userPlan === "Free" && (
+          <Alert className="mb-4 border-yellow-500/50 bg-yellow-500/10">
+            <AlertTriangle className="h-4 w-4 text-yellow-600" />
+            <AlertDescription className="text-yellow-700">
+              ⚠️ Видео будет содержать водяной знак. <a href="/subscription" className="underline font-medium hover:text-yellow-800">Обновите тариф</a>, чтобы удалить.
+            </AlertDescription>
+          </Alert>
+        )}
+
         {/* Settings */}
         <div className="flex flex-wrap items-center gap-3">
           <Select value={selectedModel} onValueChange={setSelectedModel}>
@@ -235,15 +275,26 @@ export default function Video() {
             </SelectContent>
           </Select>
 
-          <Button 
-            variant="gradient" 
-            className="ml-auto gap-2"
-            onClick={handleSubmit}
-            disabled={!prompt.trim()}
-          >
-            <Sparkles className="h-4 w-4" />
-            Сгенерировать
-          </Button>
+          <div className="ml-auto flex items-center gap-2">
+            <Button 
+              variant="outline" 
+              className="gap-2"
+              onClick={handleGeneratePreview}
+              disabled={!prompt.trim()}
+            >
+              <Eye className="h-4 w-4" />
+              Превью (1 кадр)
+            </Button>
+            <Button 
+              variant="gradient" 
+              className="gap-2"
+              onClick={handleSubmit}
+              disabled={!prompt.trim()}
+            >
+              <Sparkles className="h-4 w-4" />
+              Сгенерировать
+            </Button>
+          </div>
         </div>
       </div>
 

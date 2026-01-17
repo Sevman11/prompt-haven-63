@@ -3,6 +3,7 @@ import { useNavigate } from "react-router-dom";
 import { Plus, Search, Bot, MessageSquare, MoreVertical, Pencil, Trash2, UserPlus } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
+import { Badge } from "@/components/ui/badge";
 import { assistants as initialAssistants } from "@/data/mockData";
 import {
   Dialog,
@@ -26,6 +27,26 @@ import { toast } from "@/hooks/use-toast";
 
 const emojiOptions = ["🤖", "✍️", "💻", "📊", "🎨", "🔍", "⚖️", "🎯", "💡", "🚀"];
 const colorOptions = ["#3B82F6", "#10B981", "#8B5CF6", "#F59E0B", "#EF4444", "#6366F1", "#EC4899", "#14B8A6"];
+
+// Specialization tags for different roles
+const specializationTags: Record<string, string[]> = {
+  "Копирайтер": ["SEO", "Блоги", "SMM"],
+  "Copywriter": ["SEO", "Blogs", "SMM"],
+  "Программист": ["Python", "React", "Debug"],
+  "Programmer": ["Python", "React", "Debug"],
+  "SEO Специалист": ["Анализ", "Ключевые слова", "Оптимизация"],
+  "Переводчик": ["EN↔RU", "Локализация", "Документы"],
+  "Редактор": ["Грамматика", "Стиль", "Тон"],
+  "Юрист": ["Договоры", "Консультации", "Документы"],
+  "HR Менеджер": ["Подбор", "Оценка", "Адаптация"],
+  "Финансист": ["Анализ", "Планирование", "Отчёты"],
+  "Аналитик данных": ["SQL", "Визуализация", "Отчёты"],
+  "Маркетолог": ["Стратегия", "Реклама", "Аналитика"],
+};
+
+const getSpecializationTags = (name: string): string[] => {
+  return specializationTags[name] || ["AI", "Помощь", "Автоматизация"];
+};
 
 const availableAssistants = [
   { id: "avail-1", name: "SEO Специалист", description: "Оптимизация контента для поисковых систем", icon: "🔍", color: "#10B981" },
@@ -279,6 +300,15 @@ export default function Assistants() {
                 <h3 className="font-semibold text-foreground">{assistant.name}</h3>
               </div>
               
+              {/* Specialization Tags */}
+              <div className="flex flex-wrap gap-1 mb-2">
+                {getSpecializationTags(assistant.name).map((tag) => (
+                  <Badge key={tag} variant="secondary" className="text-xs px-2 py-0">
+                    {tag}
+                  </Badge>
+                ))}
+              </div>
+              
               <p className="text-sm text-muted-foreground line-clamp-2 mb-3">{assistant.description}</p>
 
               {/* Chat button */}
@@ -337,6 +367,15 @@ export default function Assistants() {
                     {assistant.icon}
                   </div>
                   <h3 className="font-semibold text-foreground">{assistant.name}</h3>
+                </div>
+                
+                {/* Specialization Tags */}
+                <div className="flex flex-wrap gap-1 mb-2">
+                  {getSpecializationTags(assistant.name).map((tag) => (
+                    <Badge key={tag} variant="secondary" className="text-xs px-2 py-0">
+                      {tag}
+                    </Badge>
+                  ))}
                 </div>
                 
                 <p className="text-sm text-muted-foreground line-clamp-2 mb-3">{assistant.description}</p>

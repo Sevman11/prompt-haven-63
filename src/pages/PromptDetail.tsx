@@ -1,8 +1,11 @@
 import { useState } from "react";
 import { useParams, useNavigate } from "react-router-dom";
-import { ArrowLeft, Heart, Copy, Share2, Sparkles, Check, ArrowRight, Settings2 } from "lucide-react";
+import { ArrowLeft, Heart, Copy, Share2, Sparkles, Check, ArrowRight, Settings2, Code, ChevronDown, ChevronUp } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
+import { Input } from "@/components/ui/input";
+import { Label } from "@/components/ui/label";
+import { Textarea } from "@/components/ui/textarea";
 import { ChatMessage } from "@/components/chat/ChatMessage";
 import { ChatInput } from "@/components/chat/ChatInput";
 import { prompts, chatHistory } from "@/data/mockData";
@@ -15,6 +18,11 @@ import {
   SelectTrigger,
   SelectValue,
 } from "@/components/ui/select";
+import {
+  Collapsible,
+  CollapsibleContent,
+  CollapsibleTrigger,
+} from "@/components/ui/collapsible";
 
 const modelColors = {
   GPT: "bg-emerald-500/10 text-emerald-600 border-emerald-200",
@@ -31,6 +39,38 @@ const availableModels = [
   { id: "gemini-2", name: "Gemini 2.0", provider: "Google" },
 ];
 
+// Dynamic prompt template example
+const dynamicPromptTemplate = {
+  prompt_template: "Write a {{platform}} post about {{topic}}. Use a {{tone}} tone. Focus on these key points: {{key_points}}.",
+  inputs: [
+    {
+      key: "platform",
+      label: "Платформа",
+      type: "select",
+      options: ["LinkedIn", "Twitter", "Instagram"],
+      default: "LinkedIn"
+    },
+    {
+      key: "topic",
+      label: "Тема поста",
+      type: "text",
+      placeholder: "например: Будущее AI..."
+    },
+    {
+      key: "tone",
+      label: "Тон сообщения",
+      type: "select",
+      options: ["Professional", "Witty", "Urgent", "Educational"]
+    },
+    {
+      key: "key_points",
+      label: "Ключевые моменты",
+      type: "textarea",
+      placeholder: "Перечислите основные тезисы..."
+    }
+  ]
+};
+
 export default function PromptDetail() {
   const { id } = useParams();
   const navigate = useNavigate();
@@ -39,6 +79,13 @@ export default function PromptDetail() {
   const [messages, setMessages] = useState(chatHistory);
   const [chatInputValue, setChatInputValue] = useState("");
   const [selectedModel, setSelectedModel] = useState(availableModels[0].id);
+  const [showSourcePrompt, setShowSourcePrompt] = useState(false);
+  const [templateValues, setTemplateValues] = useState<Record<string, string>>({
+    platform: "LinkedIn",
+    topic: "",
+    tone: "Professional",
+    key_points: ""
+  });
 
   const prompt = prompts.find((p) => p.id === id);
 
